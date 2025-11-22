@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Theme Test</title>
+    <style>
+        :root {
+            --color-primary: #0F766E;
+            --bg-primary: #FFFFFF;
+            --text-primary: #334155;
+        }
+
+        html.theme-kids.mode-day {
+            --color-primary: #FF6B9D;
+            --bg-primary: #FFF5F7;
+            --text-primary: #2D3748;
+        }
+
+        html.theme-youth.mode-day {
+            --color-primary: #8B5CF6;
+            --bg-primary: #F8FAFC;
+            --text-primary: #1E293B;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .box {
+            background-color: var(--color-primary);
+            color: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--color-primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test de Temas</h1>
+    <p>Tema actual: <span id="current-theme">adults</span></p>
+    
+    <div class="box">
+        Esta caja usa var(--color-primary)
+    </div>
+
+    <button onclick="setTheme('adults')">Adultos</button>
+    <button onclick="setTheme('kids')">Niños</button>
+    <button onclick="setTheme('youth')">Jóvenes</button>
+
+    <script>
+        function setTheme(theme) {
+            const html = document.documentElement;
+            
+            // Remove all theme classes
+            html.classList.remove('theme-adults', 'theme-kids', 'theme-youth');
+            html.classList.remove('mode-day', 'mode-night');
+            
+            // Add new theme
+            html.classList.add(`theme-${theme}`);
+            html.classList.add('mode-day');
+            
+            document.getElementById('current-theme').textContent = theme;
+            
+            console.log('HTML classes:', html.className);
+            console.log('Primary color:', getComputedStyle(document.documentElement).getPropertyValue('--color-primary'));
+        }
+
+        // Set initial theme
+        setTheme('adults');
+    </script>
+</body>
+</html>

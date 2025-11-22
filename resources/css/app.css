@@ -1,3 +1,170 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+
+  /* Smooth transitions for theme changes */
+  * {
+    @apply transition-colors duration-300;
+  }
+
+  /* Default theme variables (Adults Day) */
+  :root {
+    --color-primary: #0F766E;
+    --color-secondary: #D97706;
+    --color-accent: #7C3AED;
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F8FAFC;
+    --text-primary: #334155;
+    --text-secondary: #64748B;
+  }
+
+  /* Kids Theme - Day Mode */
+  html.theme-kids.mode-day {
+    --color-primary: #FF6B9D;
+    --color-secondary: #4ECDC4;
+    --color-accent: #FFE66D;
+    --bg-primary: #FFF5F7;
+    --bg-secondary: #FFE5EC;
+    --text-primary: #2D3748;
+    --text-secondary: #4A5568;
+  }
+
+  /* Kids Theme - Night Mode */
+  html.theme-kids.mode-night {
+    --color-primary: #FF6B9D;
+    --color-secondary: #4ECDC4;
+    --color-accent: #FFE66D;
+    --bg-primary: #2C1B47;
+    --bg-secondary: #3D2B5F;
+    --text-primary: #F7FAFC;
+    --text-secondary: #E2E8F0;
+  }
+
+  /* Youth Theme - Day Mode */
+  html.theme-youth.mode-day {
+    --color-primary: #8B5CF6;
+    --color-secondary: #06B6D4;
+    --color-accent: #F97316;
+    --bg-primary: #F8FAFC;
+    --bg-secondary: #F1F5F9;
+    --text-primary: #1E293B;
+    --text-secondary: #475569;
+  }
+
+  /* Youth Theme - Night Mode */
+  html.theme-youth.mode-night {
+    --color-primary: #A78BFA;
+    --color-secondary: #22D3EE;
+    --color-accent: #FB923C;
+    --bg-primary: #1E293B;
+    --bg-secondary: #334155;
+    --text-primary: #F1F5F9;
+    --text-secondary: #CBD5E1;
+  }
+
+  /* Adults Theme - Day Mode */
+  html.theme-adults.mode-day {
+    --color-primary: #0F766E;
+    --color-secondary: #D97706;
+    --color-accent: #7C3AED;
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F8FAFC;
+    --text-primary: #334155;
+    --text-secondary: #64748B;
+  }
+
+  /* Adults Theme - Night Mode */
+  html.theme-adults.mode-night {
+    --color-primary: #14B8A6;
+    --color-secondary: #FBBF24;
+    --color-accent: #A78BFA;
+    --bg-primary: #0F172A;
+    --bg-secondary: #1E293B;
+    --text-primary: #E2E8F0;
+    --text-secondary: #94A3B8;
+  }
+
+  /* Font Size - Small */
+  html.font-small {
+    font-size: 14px;
+  }
+
+  /* Font Size - Medium (default) */
+  html.font-medium {
+    font-size: 16px;
+  }
+
+  /* Font Size - Large */
+  html.font-large {
+    font-size: 18px;
+  }
+
+  /* Font Size - Extra Large */
+  html.font-extra-large {
+    font-size: 20px;
+  }
+
+  /* High Contrast Mode */
+  html.contrast-high {
+    --text-primary: #000000;
+    --text-secondary: #1A1A1A;
+  }
+
+  html.contrast-high.mode-night {
+    --text-primary: #FFFFFF;
+    --text-secondary: #F0F0F0;
+    --bg-primary: #000000;
+    --bg-secondary: #1A1A1A;
+  }
+
+  /* Apply theme variables to body */
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+}
+
+@layer components {
+
+  /* Theme-aware button */
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg font-medium;
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    @apply opacity-90;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded-lg font-medium;
+    background-color: var(--color-secondary);
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    @apply opacity-90;
+  }
+
+  /* Theme-aware card */
+  .card {
+    @apply rounded-lg shadow-md p-6;
+    background-color: var(--bg-secondary);
+  }
+
+  /* Theme-aware input */
+  .input {
+    @apply w-full px-4 py-2 rounded-lg border;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+  }
+
+  .input:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}

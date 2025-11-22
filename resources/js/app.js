@@ -16,12 +16,32 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        return createApp({ render: () => h(App, props) })
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue)
-            .mount(el);
+            .use(ZiggyVue);
+
+        // Initialize theme and accessibility on mount
+        app.mixin({
+            mounted() {
+                if (this.$el === el) {
+                    // Only run once on root component
+                    import('./composables/useTheme').then(({ useTheme }) => {
+                        const { initializeTheme } = useTheme();
+                        initializeTheme();
+                    });
+
+                    import('./composables/useAccessibility').then(({ useAccessibility }) => {
+                        const { initializeAccessibility } = useAccessibility();
+                        initializeAccessibility();
+                    });
+                }
+            },
+        });
+
+        return app.mount(el);
     },
     progress: {
         color: '#4B5563',
     },
 });
+
