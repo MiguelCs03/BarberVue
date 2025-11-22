@@ -27,9 +27,9 @@ dist-ssr/
 *.local
 
 # Package manager lock files (opcional - descomenta si no quieres versionar)
-# pnpm-lock.yaml
-# package-lock.json
-# yarn.lock
+ pnpm-lock.yaml
+ package-lock.json
+ yarn.lock
 
 # Editor directories and files
 .vscode/
