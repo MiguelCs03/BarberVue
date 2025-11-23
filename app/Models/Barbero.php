@@ -21,4 +21,13 @@ class Barbero extends Model
     {
         return $this->belongsTo(User::class, 'usuario_id');
     }
+
+    public function servicioBarberos()
+    {
+        return $this->hasMany(ServicioBarbero::class, 'barbero_id');
+    }
+    public function citas(){
+        return $this->hasMany(Cita::class, 'barbero_id');
+    }
+    
 }
