@@ -34,86 +34,41 @@
         :style="{ backgroundColor: 'var(--bg-secondary)' }"
       >
         <nav class="p-4 space-y-2">
-          <Link
-            :href="route('dashboard')"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
-            :class="isActive('dashboard') ? 'font-bold' : ''"
-            :style="isActive('dashboard') ? { backgroundColor: 'var(--color-primary)', color: 'white' } : { color: 'var(--text-primary)' }"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            <span>Dashboard</span>
-          </Link>
+          <!-- Dynamic Menu Items -->
+          <template v-for="item in menuItems" :key="item.id">
+            <!-- Parent Item (with or without children) -->
+            <div v-if="item.children && item.children.length > 0">
+              <!-- Section Header -->
+              <div class="pt-4 pb-2 px-4 text-xs font-semibold uppercase tracking-wider" :style="{ color: 'var(--text-secondary)' }">
+                {{ item.nombre }}
+              </div>
+              
+              <!-- Children -->
+              <Link
+                v-for="child in item.children"
+                :key="child.id"
+                :href="child.ruta"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
+                :class="isActive(child.ruta) ? 'font-bold' : ''"
+                :style="isActive(child.ruta) ? { backgroundColor: 'var(--color-primary)', color: 'white' } : { color: 'var(--text-primary)' }"
+              >
+                <MenuIcon :name="child.icono" />
+                <span>{{ child.nombre }}</span>
+              </Link>
+            </div>
 
-          <Link
-            :href="route('users.index')"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
-            :class="isActive('users.*') ? 'font-bold' : ''"
-            :style="isActive('users.*') ? { backgroundColor: 'var(--color-primary)', color: 'white' } : { color: 'var(--text-primary)' }"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            <span>Usuarios</span>
-          </Link>
-
-          <!-- Placeholder for future modules -->
-          <div class="pt-4 pb-2 px-4 text-xs font-semibold uppercase tracking-wider" :style="{ color: 'var(--text-secondary)' }">
-            Inventario
-          </div>
-
-          <Link
-            :href="route('products.index')"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
-            :class="isActive('products.*') ? 'font-bold' : ''"
-            :style="isActive('products.*') ? { backgroundColor: 'var(--color-primary)', color: 'white' } : { color: 'var(--text-primary)' }"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-            <span>Productos</span>
-          </Link>
-
-          <Link
-            :href="route('services.index')"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
-            :class="isActive('services.*') ? 'font-bold' : ''"
-            :style="isActive('services.*') ? { backgroundColor: 'var(--color-primary)', color: 'white' } : { color: 'var(--text-primary)' }"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Servicios</span>
-          </Link>
-
-          <Link
-            :href="route('inventory.index')"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
-            :class="isActive('inventory.*') ? 'font-bold' : ''"
-            :style="isActive('inventory.*') ? { backgroundColor: 'var(--color-primary)', color: 'white' } : { color: 'var(--text-primary)' }"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <span>Inventario</span>
-          </Link>
-
-          <div class="pt-4 pb-2 px-4 text-xs font-semibold uppercase tracking-wider" :style="{ color: 'var(--text-secondary)' }">
-            Próximamente
-          </div>
-
-          <Link
-            :href="route('appointments.index')"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
-            :class="isActive('appointments.*') ? 'font-bold' : ''"
-            :style="isActive('appointments.*') ? { backgroundColor: 'var(--color-primary)', color: 'white' } : { color: 'var(--text-primary)' }"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span>Citas</span>
-          </Link>
+            <!-- Single Item (no children) -->
+            <Link
+              v-else
+              :href="item.ruta"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all"
+              :class="isActive(item.ruta) ? 'font-bold' : ''"
+              :style="isActive(item.ruta) ? { backgroundColor: 'var(--color-primary)', color: 'white' } : { color: 'var(--text-primary)' }"
+            >
+              <MenuIcon :name="item.icono" />
+              <span>{{ item.nombre }}</span>
+            </Link>
+          </template>
         </nav>
       </aside>
 
@@ -157,12 +112,16 @@ import { Link, usePage } from '@inertiajs/vue3';
 import ThemeSwitcher from '@/Components/ThemeSwitcher.vue';
 import AccessibilityControls from '@/Components/AccessibilityControls.vue';
 import GlobalSearch from '@/Components/GlobalSearch.vue';
+import MenuIcon from '@/Components/MenuIcon.vue';
 import { useTheme } from '@/composables/useTheme';
 import { useAccessibility } from '@/composables/useAccessibility';
 import { usePageVisits } from '@/composables/usePageVisits';
 
 const page = usePage();
 const currentYear = new Date().getFullYear();
+
+// Get menu items from shared data
+const menuItems = computed(() => page.props.menuItems || []);
 
 const { initializeTheme } = useTheme();
 const { initializeAccessibility } = useAccessibility();

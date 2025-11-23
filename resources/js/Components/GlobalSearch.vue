@@ -23,12 +23,14 @@
       <!-- Search Icon -->
       <svg 
         class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
-        :style="{ color: 'var(--text-secondary)' }"
+        :style="{ color: isLoading ? 'var(--color-primary)' : 'var(--text-secondary)' }"
+        :class="{ 'animate-spin': isLoading }"
         fill="none" 
         stroke="currentColor" 
         viewBox="0 0 24 24"
       >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <path v-if="!isLoading" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
       </svg>
 
       <!-- Clear Button -->
@@ -109,7 +111,7 @@
       </div>
 
       <!-- No Results -->
-      <div v-else class="px-4 py-8 text-center">
+      <div v-else-if="!isLoading" class="px-4 py-8 text-center">
         <svg class="w-12 h-12 mx-auto mb-3 opacity-50" :style="{ color: 'var(--text-secondary)' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -118,16 +120,10 @@
         </p>
       </div>
 
-      <!-- Search Tip -->
-      <div 
-        class="px-4 py-2 text-xs border-t"
-        :style="{ 
-          backgroundColor: 'var(--bg-secondary)',
-          color: 'var(--text-secondary)',
-          borderColor: 'var(--text-secondary)'
-        }"
-      >
-        <span class="opacity-75">Tip: Usa ↑↓ para navegar, Enter para seleccionar, Esc para cerrar</span>
+      <!-- Loading -->
+      <div v-else class="px-4 py-8 text-center">
+        <div class="animate-spin w-8 h-8 border-4 border-t-transparent rounded-full mx-auto" :style="{ borderColor: 'var(--color-primary)' }"></div>
+        <p class="mt-3" :style="{ color: 'var(--text-secondary)' }">Buscando...</p>
       </div>
     </div>
   </div>
@@ -136,27 +132,55 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
-import { useGlobalSearch } from '@/composables/useGlobalSearch';
+import axios from 'axios';
 
-const { searchQuery, searchResults, performSearch, clearSearch, getResultRoute } = useGlobalSearch();
-
+const searchQuery = ref('');
+const searchResults = ref([]);
 const showResults = ref(false);
 const selectedIndex = ref(0);
 const searchContainer = ref(null);
+const isLoading = ref(false);
+let searchTimeout = null;
 
-const handleSearch = (event) => {
-  performSearch(event.target.value);
-  selectedIndex.value = 0;
+const handleSearch = () => {
+  // Clear previous timeout
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+
+  // Reset if query is too short
+  if (searchQuery.value.length < 2) {
+    searchResults.value = [];
+    return;
+  }
+
+  // Debounce search
+  isLoading.value = true;
+  searchTimeout = setTimeout(async () => {
+    try {
+      const response = await axios.get('/api/search', {
+        params: { q: searchQuery.value }
+      });
+      searchResults.value = response.data;
+    } catch (error) {
+      console.error('Search error:', error);
+      searchResults.value = [];
+    } finally {
+      isLoading.value = false;
+    }
+  }, 300);
 };
 
 const handleClear = () => {
-  clearSearch();
+  searchQuery.value = '';
+  searchResults.value = [];
   showResults.value = false;
   selectedIndex.value = 0;
 };
 
 const handleEscape = () => {
   showResults.value = false;
+  selectedIndex.value = 0;
 };
 
 const navigateResults = (direction) => {
@@ -165,7 +189,9 @@ const navigateResults = (direction) => {
   if (direction === 'down') {
     selectedIndex.value = (selectedIndex.value + 1) % searchResults.value.length;
   } else {
-    selectedIndex.value = selectedIndex.value === 0 ? searchResults.value.length - 1 : selectedIndex.value - 1;
+    selectedIndex.value = selectedIndex.value === 0 
+      ? searchResults.value.length - 1 
+      : selectedIndex.value - 1;
   }
 };
 
@@ -176,13 +202,11 @@ const selectResult = () => {
 };
 
 const navigateToResult = (result) => {
-  const url = getResultRoute(result);
-  router.visit(url);
+  router.visit(result.url);
   handleClear();
-  showResults.value = false;
 };
 
-// Click outside to close
+// Close dropdown when clicking outside
 const handleClickOutside = (event) => {
   if (searchContainer.value && !searchContainer.value.contains(event.target)) {
     showResults.value = false;
@@ -195,5 +219,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
 });
 </script>

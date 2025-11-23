@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'rol', // barbero or cliente
     ];
 
     /**
@@ -44,5 +45,37 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the barbero record if user is a barbero
+     */
+    public function barbero()
+    {
+        return $this->hasOne(Barbero::class, 'usuario_id');
+    }
+
+    /**
+     * Get the cliente record if user is a cliente
+     */
+    public function cliente()
+    {
+        return $this->hasOne(Cliente::class, 'usuario_id');
+    }
+
+    /**
+     * Check if user is a barbero
+     */
+    public function isBarbero()
+    {
+        return $this->rol === 'barbero';
+    }
+
+    /**
+     * Check if user is a cliente
+     */
+    public function isCliente()
+    {
+        return $this->rol === 'cliente';
     }
 }

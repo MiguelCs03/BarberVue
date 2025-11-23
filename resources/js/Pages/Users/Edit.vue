@@ -2,7 +2,6 @@
   <Head title="Editar Usuario" />
 
   <AppLayout>
-    <!-- Page Header -->
     <div class="mb-6">
       <Link
         :href="route('users.index')"
@@ -12,18 +11,14 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-        Volver a la lista
+        Volver
       </Link>
 
       <h1 class="text-3xl font-bold mb-2" :style="{ color: 'var(--text-primary)' }">
         Editar Usuario
       </h1>
-      <p :style="{ color: 'var(--text-secondary)' }">
-        Actualiza la información del usuario
-      </p>
     </div>
 
-    <!-- Form -->
     <Card>
       <form @submit.prevent="handleSubmit" class="space-y-6">
         <!-- Name -->
@@ -36,9 +31,8 @@
             type="text"
             required
             class="input"
-            placeholder="Ej: Juan Pérez"
           />
-          <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
+          <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</p>
         </div>
 
         <!-- Email -->
@@ -51,24 +45,34 @@
             type="email"
             required
             class="input"
-            placeholder="usuario@ejemplo.com"
           />
-          <p v-if="errors.email" class="mt-1 text-sm text-red-600">{{ errors.email }}</p>
+          <p v-if="form.errors.email" class="mt-1 text-sm text-red-600">{{ form.errors.email }}</p>
         </div>
 
-        <!-- Phone -->
+        <!-- Password (optional) -->
         <div>
           <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Teléfono *
+            Nueva Contraseña (dejar en blanco para mantener la actual)
           </label>
           <input
-            v-model="form.phone"
-            type="tel"
-            required
+            v-model="form.password"
+            type="password"
             class="input"
-            placeholder="+591 7123-4567"
+            placeholder="Mínimo 8 caracteres"
           />
-          <p v-if="errors.phone" class="mt-1 text-sm text-red-600">{{ errors.phone }}</p>
+          <p v-if="form.errors.password" class="mt-1 text-sm text-red-600">{{ form.errors.password }}</p>
+        </div>
+
+        <!-- Password Confirmation -->
+        <div v-if="form.password">
+          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
+            Confirmar Nueva Contraseña
+          </label>
+          <input
+            v-model="form.password_confirmation"
+            type="password"
+            class="input"
+          />
         </div>
 
         <!-- Role -->
@@ -77,51 +81,29 @@
             Rol *
           </label>
           <select
-            v-model="form.role"
+            v-model="form.rol"
             required
             class="input"
           >
-            <option value="">Seleccionar rol...</option>
-            <option value="propietario">Propietario</option>
             <option value="barbero">Barbero</option>
-            <option value="secretaria">Secretaria</option>
             <option value="cliente">Cliente</option>
           </select>
-          <p v-if="errors.role" class="mt-1 text-sm text-red-600">{{ errors.role }}</p>
+          <p v-if="form.errors.rol" class="mt-1 text-sm text-red-600">{{ form.errors.rol }}</p>
         </div>
 
-        <!-- Avatar (placeholder) -->
-        <div>
+        <!-- Estado Barbero (only if barbero) -->
+        <div v-if="form.rol === 'barbero'">
           <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Foto de Perfil
+            Estado del Barbero
           </label>
-          <div class="flex items-center gap-4">
-            <div class="w-20 h-20 rounded-full flex items-center justify-center text-3xl" :style="{ backgroundColor: 'var(--bg-secondary)' }">
-              👤
-            </div>
-            <button
-              type="button"
-              class="btn-secondary"
-              @click="alert('Funcionalidad de carga de imagen pendiente')"
-            >
-              Cambiar Imagen
-            </button>
-          </div>
-        </div>
-
-        <!-- Status -->
-        <div>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              v-model="form.status"
-              type="checkbox"
-              class="rounded"
-              :style="{ accentColor: 'var(--color-primary)' }"
-            />
-            <span class="text-sm font-medium" :style="{ color: 'var(--text-primary)' }">
-              Usuario activo
-            </span>
-          </label>
+          <select
+            v-model="form.estado_barbero"
+            class="input"
+          >
+            <option value="disponible">Disponible</option>
+            <option value="ocupado">Ocupado</option>
+            <option value="descanso">Descanso</option>
+          </select>
         </div>
 
         <!-- Actions -->
@@ -129,8 +111,9 @@
           <button
             type="submit"
             class="btn-primary"
+            :disabled="form.processing"
           >
-            Guardar Cambios
+            {{ form.processing ? 'Guardando...' : 'Guardar Cambios' }}
           </button>
           <Link
             :href="route('users.index')"
@@ -145,61 +128,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 
-// Get user ID from route (in real app, this would come from props)
-const userId = window.location.pathname.split('/').pop();
-
-// Mock user data (in real app, this would come from backend)
-const mockUsers = {
-  '1': { id: 1, name: 'Juan Pérez', email: 'juan.perez@barbershop.com', phone: '+591 7123-4567', role: 'propietario', status: true },
-  '2': { id: 2, name: 'María González', email: 'maria.gonzalez@barbershop.com', phone: '+591 7234-5678', role: 'barbero', status: true },
-  '3': { id: 3, name: 'Carlos Rodríguez', email: 'carlos.rodriguez@barbershop.com', phone: '+591 7345-6789', role: 'barbero', status: true },
-  '4': { id: 4, name: 'Ana Martínez', email: 'ana.martinez@barbershop.com', phone: '+591 7456-7890', role: 'secretaria', status: true },
-  '5': { id: 5, name: 'Pedro Sánchez', email: 'pedro.sanchez@gmail.com', phone: '+591 7567-8901', role: 'cliente', status: true },
-  '6': { id: 6, name: 'Laura Torres', email: 'laura.torres@gmail.com', phone: '+591 7678-9012', role: 'cliente', status: false },
-};
-
-const currentUser = mockUsers[userId] || mockUsers['1'];
-
-const form = ref({
-  name: currentUser.name,
-  email: currentUser.email,
-  phone: currentUser.phone,
-  role: currentUser.role,
-  status: currentUser.status,
+const props = defineProps({
+  user: Object,
 });
 
-const errors = ref({});
+const form = useForm({
+  name: props.user.name,
+  email: props.user.email,
+  password: '',
+  password_confirmation: '',
+  rol: props.user.rol,
+  estado_barbero: props.user.estado_barbero || 'disponible',
+});
 
 const handleSubmit = () => {
-  // Client-side validation
-  errors.value = {};
-
-  if (!form.value.name) {
-    errors.value.name = 'El nombre es requerido';
-  }
-
-  if (!form.value.email) {
-    errors.value.email = 'El email es requerido';
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-    errors.value.email = 'El email no es válido';
-  }
-
-  if (!form.value.phone) {
-    errors.value.phone = 'El teléfono es requerido';
-  }
-
-  if (!form.value.role) {
-    errors.value.role = 'El rol es requerido';
-  }
-
-  if (Object.keys(errors.value).length === 0) {
-    alert('Usuario actualizado exitosamente (funcionalidad de backend pendiente)');
-    router.visit(route('users.index'));
-  }
+  form.put(route('users.update', props.user.id), {
+    preserveScroll: true,
+  });
 };
 </script>

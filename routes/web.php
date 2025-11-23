@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -45,6 +46,9 @@ Route::middleware('auth')->group(function () {
     
     // Appointment Management Routes
     Route::resource('appointments', AppointmentController::class);
+    
+    // Global Search Route
+    Route::get('/api/search', [SearchController::class, 'search'])->name('search');
     
     // Analytics Route
     Route::get('/analytics/visits', function () {

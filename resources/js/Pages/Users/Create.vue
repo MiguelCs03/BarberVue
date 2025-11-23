@@ -38,7 +38,7 @@
             class="input"
             placeholder="Ej: Juan Pérez"
           />
-          <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
+          <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</p>
         </div>
 
         <!-- Email -->
@@ -53,22 +53,36 @@
             class="input"
             placeholder="usuario@ejemplo.com"
           />
-          <p v-if="errors.email" class="mt-1 text-sm text-red-600">{{ errors.email }}</p>
+          <p v-if="form.errors.email" class="mt-1 text-sm text-red-600">{{ form.errors.email }}</p>
         </div>
 
-        <!-- Phone -->
+        <!-- Password -->
         <div>
           <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Teléfono *
+            Contraseña *
           </label>
           <input
-            v-model="form.phone"
-            type="tel"
+            v-model="form.password"
+            type="password"
             required
             class="input"
-            placeholder="+591 7123-4567"
+            placeholder="Mínimo 8 caracteres"
           />
-          <p v-if="errors.phone" class="mt-1 text-sm text-red-600">{{ errors.phone }}</p>
+          <p v-if="form.errors.password" class="mt-1 text-sm text-red-600">{{ form.errors.password }}</p>
+        </div>
+
+        <!-- Password Confirmation -->
+        <div>
+          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
+            Confirmar Contraseña *
+          </label>
+          <input
+            v-model="form.password_confirmation"
+            type="password"
+            required
+            class="input"
+            placeholder="Repite la contraseña"
+          />
         </div>
 
         <!-- Role -->
@@ -77,54 +91,30 @@
             Rol *
           </label>
           <select
-            v-model="form.role"
+            v-model="form.rol"
             required
             class="input"
           >
             <option value="">Seleccionar rol...</option>
-            <option value="propietario">Propietario</option>
             <option value="barbero">Barbero</option>
-            <option value="secretaria">Secretaria</option>
             <option value="cliente">Cliente</option>
           </select>
-          <p v-if="errors.role" class="mt-1 text-sm text-red-600">{{ errors.role }}</p>
+          <p v-if="form.errors.rol" class="mt-1 text-sm text-red-600">{{ form.errors.rol }}</p>
         </div>
 
-        <!-- Avatar (placeholder) -->
-        <div>
+        <!-- Estado Barbero (only if barbero) -->
+        <div v-if="form.rol === 'barbero'">
           <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Foto de Perfil
+            Estado del Barbero
           </label>
-          <div class="flex items-center gap-4">
-            <div class="w-20 h-20 rounded-full flex items-center justify-center text-3xl" :style="{ backgroundColor: 'var(--bg-secondary)' }">
-              👤
-            </div>
-            <button
-              type="button"
-              class="btn-secondary"
-              @click="alert('Funcionalidad de carga de imagen pendiente')"
-            >
-              Subir Imagen
-            </button>
-          </div>
-          <p class="mt-2 text-sm" :style="{ color: 'var(--text-secondary)' }">
-            Formatos aceptados: JPG, PNG (máx. 2MB)
-          </p>
-        </div>
-
-        <!-- Status -->
-        <div>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              v-model="form.status"
-              type="checkbox"
-              class="rounded"
-              :style="{ accentColor: 'var(--color-primary)' }"
-            />
-            <span class="text-sm font-medium" :style="{ color: 'var(--text-primary)' }">
-              Usuario activo
-            </span>
-          </label>
+          <select
+            v-model="form.estado_barbero"
+            class="input"
+          >
+            <option value="disponible">Disponible</option>
+            <option value="ocupado">Ocupado</option>
+            <option value="descanso">Descanso</option>
+          </select>
         </div>
 
         <!-- Actions -->
@@ -132,8 +122,9 @@
           <button
             type="submit"
             class="btn-primary"
+            :disabled="form.processing"
           >
-            Crear Usuario
+            {{ form.processing ? 'Creando...' : 'Crear Usuario' }}
           </button>
           <Link
             :href="route('users.index')"
@@ -148,46 +139,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 
-const form = ref({
+const form = useForm({
   name: '',
   email: '',
-  phone: '',
-  role: '',
-  status: true,
+  password: '',
+  password_confirmation: '',
+  rol: '',
+  estado_barbero: 'disponible',
 });
 
-const errors = ref({});
-
 const handleSubmit = () => {
-  // Client-side validation
-  errors.value = {};
-
-  if (!form.value.name) {
-    errors.value.name = 'El nombre es requerido';
-  }
-
-  if (!form.value.email) {
-    errors.value.email = 'El email es requerido';
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-    errors.value.email = 'El email no es válido';
-  }
-
-  if (!form.value.phone) {
-    errors.value.phone = 'El teléfono es requerido';
-  }
-
-  if (!form.value.role) {
-    errors.value.role = 'El rol es requerido';
-  }
-
-  if (Object.keys(errors.value).length === 0) {
-    alert('Usuario creado exitosamente (funcionalidad de backend pendiente)');
-    router.visit(route('users.index'));
-  }
+  form.post(route('users.store'), {
+    preserveScroll: true,
+  });
 };
 </script>

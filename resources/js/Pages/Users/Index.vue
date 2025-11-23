@@ -32,9 +32,7 @@
             class="input"
           >
             <option value="">Todos los roles</option>
-            <option value="propietario">Propietarios</option>
             <option value="barbero">Barberos</option>
-            <option value="secretaria">Secretarias</option>
             <option value="cliente">Clientes</option>
           </select>
 
@@ -55,15 +53,15 @@
         :data="filteredUsers"
         :actions="actions"
       >
-        <template #cell-role="{ value }">
+        <template #cell-rol="{ value }">
           <Badge :variant="getRoleBadgeVariant(value)">
             {{ getRoleLabel(value) }}
           </Badge>
         </template>
 
-        <template #cell-status="{ value }">
-          <Badge :variant="value === 'active' ? 'success' : 'warning'">
-            {{ value === 'active' ? 'Activo' : 'Inactivo' }}
+        <template #cell-estado="{ value }">
+          <Badge :variant="getEstadoBadgeVariant(value)">
+            {{ getEstadoLabel(value) }}
           </Badge>
         </template>
       </DataTable>
@@ -79,57 +77,10 @@ import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
 import DataTable from '@/Components/DataTable.vue';
 
-// Static mock data
-const users = ref([
-  {
-    id: 1,
-    name: 'Juan Pérez',
-    email: 'juan.perez@barbershop.com',
-    phone: '+591 7123-4567',
-    role: 'propietario',
-    status: 'active',
-  },
-  {
-    id: 2,
-    name: 'María González',
-    email: 'maria.gonzalez@barbershop.com',
-    phone: '+591 7234-5678',
-    role: 'barbero',
-    status: 'active',
-  },
-  {
-    id: 3,
-    name: 'Carlos Rodríguez',
-    email: 'carlos.rodriguez@barbershop.com',
-    phone: '+591 7345-6789',
-    role: 'barbero',
-    status: 'active',
-  },
-  {
-    id: 4,
-    name: 'Ana Martínez',
-    email: 'ana.martinez@barbershop.com',
-    phone: '+591 7456-7890',
-    role: 'secretaria',
-    status: 'active',
-  },
-  {
-    id: 5,
-    name: 'Pedro Sánchez',
-    email: 'pedro.sanchez@gmail.com',
-    phone: '+591 7567-8901',
-    role: 'cliente',
-    status: 'active',
-  },
-  {
-    id: 6,
-    name: 'Laura Torres',
-    email: 'laura.torres@gmail.com',
-    phone: '+591 7678-9012',
-    role: 'cliente',
-    status: 'inactive',
-  },
-]);
+// Receive users from backend
+const props = defineProps({
+  users: Array,
+});
 
 // Filters
 const searchQuery = ref('');
@@ -139,9 +90,9 @@ const selectedRole = ref('');
 const columns = [
   { key: 'name', label: 'Nombre' },
   { key: 'email', label: 'Email' },
-  { key: 'phone', label: 'Teléfono' },
-  { key: 'role', label: 'Rol' },
-  { key: 'status', label: 'Estado' },
+  { key: 'rol', label: 'Rol' },
+  { key: 'estado', label: 'Estado' },
+  { key: 'created_at', label: 'Fecha Registro' },
 ];
 
 // Table actions
@@ -160,7 +111,9 @@ const actions = [
     label: 'Eliminar',
     handler: (user) => {
       if (confirm(`¿Estás seguro de eliminar a ${user.name}?`)) {
-        alert('Funcionalidad de eliminación pendiente (backend)');
+        router.delete(route('users.destroy', user.id), {
+          preserveScroll: true,
+        });
       }
     },
     variant: 'danger',
@@ -169,7 +122,7 @@ const actions = [
 
 // Filtered users based on search and role
 const filteredUsers = computed(() => {
-  let filtered = users.value;
+  let filtered = props.users;
 
   // Filter by search query
   if (searchQuery.value) {
@@ -183,7 +136,7 @@ const filteredUsers = computed(() => {
 
   // Filter by role
   if (selectedRole.value) {
-    filtered = filtered.filter((user) => user.role === selectedRole.value);
+    filtered = filtered.filter((user) => user.rol === selectedRole.value);
   }
 
   return filtered;
@@ -192,9 +145,7 @@ const filteredUsers = computed(() => {
 // Helper functions
 const getRoleLabel = (role) => {
   const labels = {
-    propietario: 'Propietario',
     barbero: 'Barbero',
-    secretaria: 'Secretaria',
     cliente: 'Cliente',
   };
   return labels[role] || role;
@@ -202,11 +153,29 @@ const getRoleLabel = (role) => {
 
 const getRoleBadgeVariant = (role) => {
   const variants = {
-    propietario: 'primary',
-    barbero: 'secondary',
-    secretaria: 'warning',
-    cliente: 'default',
+    barbero: 'primary',
+    cliente: 'secondary',
   };
   return variants[role] || 'default';
+};
+
+const getEstadoLabel = (estado) => {
+  const labels = {
+    disponible: 'Disponible',
+    ocupado: 'Ocupado',
+    descanso: 'Descanso',
+    activo: 'Activo',
+  };
+  return labels[estado] || estado;
+};
+
+const getEstadoBadgeVariant = (estado) => {
+  const variants = {
+    disponible: 'success',
+    ocupado: 'warning',
+    descanso: 'info',
+    activo: 'success',
+  };
+  return variants[estado] || 'default';
 };
 </script>

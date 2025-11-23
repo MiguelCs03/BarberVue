@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Barbero;
+use App\Models\Cliente;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class UserController extends Controller
@@ -12,7 +17,25 @@ class UserController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Users/Index');
+        $users = User::with(['barbero', 'cliente'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'rol' => $user->rol,
+                    'estado' => $user->rol === 'barbero' && $user->barbero 
+                        ? $user->barbero->estado_barbero 
+                        : 'activo',
+                    'created_at' => $user->created_at->format('d/m/Y'),
+                ];
+            });
+
+        return Inertia::render('Users/Index', [
+            'users' => $users,
+        ]);
     }
 
     /**
@@ -28,8 +51,36 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // TODO: Implement when backend is ready
-        return redirect()->route('users.index');
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'rol' => ['required', Rule::in(['barbero', 'cliente'])],
+            'estado_barbero' => 'nullable|in:disponible,ocupado,descanso',
+        ]);
+
+        // Create user
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'rol' => $validated['rol'],
+        ]);
+
+        // Create role-specific record
+        if ($validated['rol'] === 'barbero') {
+            Barbero::create([
+                'usuario_id' => $user->id,
+                'estado_barbero' => $validated['estado_barbero'] ?? 'disponible',
+            ]);
+        } else {
+            Cliente::create([
+                'usuario_id' => $user->id,
+            ]);
+        }
+
+        return redirect()->route('users.index')
+            ->with('success', 'Usuario creado exitosamente');
     }
 
     /**
@@ -37,7 +88,22 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        return Inertia::render('Users/Show');
+        $user = User::with(['barbero', 'cliente'])->findOrFail($id);
+
+        $userData = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'rol' => $user->rol,
+            'estado_barbero' => $user->rol === 'barbero' && $user->barbero 
+                ? $user->barbero->estado_barbero 
+                : null,
+            'created_at' => $user->created_at->format('d/m/Y H:i'),
+        ];
+
+        return Inertia::render('Users/Show', [
+            'user' => $userData,
+        ]);
     }
 
     /**
@@ -45,7 +111,21 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        return Inertia::render('Users/Edit');
+        $user = User::with(['barbero', 'cliente'])->findOrFail($id);
+
+        $userData = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'rol' => $user->rol,
+            'estado_barbero' => $user->rol === 'barbero' && $user->barbero 
+                ? $user->barbero->estado_barbero 
+                : 'disponible',
+        ];
+
+        return Inertia::render('Users/Edit', [
+            'user' => $userData,
+        ]);
     }
 
     /**
@@ -53,8 +133,64 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // TODO: Implement when backend is ready
-        return redirect()->route('users.index');
+        $user = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:8|confirmed',
+            'rol' => ['required', Rule::in(['barbero', 'cliente'])],
+            'estado_barbero' => 'nullable|in:disponible,ocupado,descanso',
+        ]);
+
+        // Update user
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'rol' => $validated['rol'],
+        ]);
+
+        // Update password if provided
+        if (!empty($validated['password'])) {
+            $user->update([
+                'password' => Hash::make($validated['password']),
+            ]);
+        }
+
+        // Handle role change
+        if ($validated['rol'] === 'barbero') {
+            // Delete cliente record if exists
+            if ($user->cliente) {
+                $user->cliente->delete();
+            }
+            
+            // Create or update barbero record
+            if ($user->barbero) {
+                $user->barbero->update([
+                    'estado_barbero' => $validated['estado_barbero'] ?? 'disponible',
+                ]);
+            } else {
+                Barbero::create([
+                    'usuario_id' => $user->id,
+                    'estado_barbero' => $validated['estado_barbero'] ?? 'disponible',
+                ]);
+            }
+        } else {
+            // Delete barbero record if exists
+            if ($user->barbero) {
+                $user->barbero->delete();
+            }
+            
+            // Create cliente record if doesn't exist
+            if (!$user->cliente) {
+                Cliente::create([
+                    'usuario_id' => $user->id,
+                ]);
+            }
+        }
+
+        return redirect()->route('users.index')
+            ->with('success', 'Usuario actualizado exitosamente');
     }
 
     /**
@@ -62,7 +198,17 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        // TODO: Implement when backend is ready
-        return redirect()->route('users.index');
+        $user = User::findOrFail($id);
+        
+        // Prevent deleting yourself
+        if ($user->id === auth()->id()) {
+            return redirect()->route('users.index')
+                ->with('error', 'No puedes eliminar tu propio usuario');
+        }
+
+        $user->delete();
+
+        return redirect()->route('users.index')
+            ->with('success', 'Usuario eliminado exitosamente');
     }
 }
