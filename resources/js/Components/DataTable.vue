@@ -52,7 +52,9 @@
                 }"
                 :title="action.label"
               >
-                {{ action.label }}
+                <!-- {{ action.label }} -->
+                <component v-if="action.icon" :is="action.icon" class="w-5 h-5" />
+                <span v-else>{{ action.label }}</span>
               </button>
             </div>
           </td>

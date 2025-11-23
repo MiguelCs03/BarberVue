@@ -36,8 +36,16 @@ Route::middleware('auth')->group(function () {
     Route::resource('products', ProductController::class);
     
     // Service Management Routes
-    Route::resource('services', ServiceController::class);
-    
+    //Route::resource('services', ServiceController::class);
+
+    Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+    Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
+    Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
+    Route::get('/services/{id}', [ServiceController::class, 'show'])->name('services.show');
+    Route::get('/services/{id}/edit', [ServiceController::class, 'edit'])->name('services.edit');
+    Route::put('/services/{id}', [ServiceController::class, 'update'])->name('services.update');
+    Route::delete('/services/{id}', [ServiceController::class, 'destroy'])->name('services.destroy');
+
     // Inventory Management Routes
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');

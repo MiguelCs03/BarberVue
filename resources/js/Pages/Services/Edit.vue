@@ -17,46 +17,84 @@
       <h1 class="text-3xl font-bold mb-2" :style="{ color: 'var(--text-primary)' }">
         Editar Servicio
       </h1>
+      <p :style="{ color: 'var(--text-secondary)' }">
+        Actualiza la información del servicio: {{ service.nombre }}
+      </p>
     </div>
 
     <Card>
       <form @submit.prevent="handleSubmit" class="space-y-6">
-        <div>
-          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Nombre del Servicio *
-          </label>
-          <input
-            v-model="form.nombre"
-            type="text"
-            required
-            class="input"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Descripción *
-          </label>
-          <textarea
-            v-model="form.descripcion"
-            required
-            rows="3"
-            class="input"
-          ></textarea>
-        </div>
-
+        <!-- Nombre y Estado en la misma fila -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-              Duración Estimada (minutos) *
+              Nombre del Servicio *
+            </label>
+            <input
+              v-model="form.nombre"
+              type="text"
+              required
+              class="input"
+              :class="{ 'border-red-500': form.errors.nombre }"
+            />
+            <p v-if="form.errors.nombre" class="text-red-500 text-sm mt-1">
+              {{ form.errors.nombre }}
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
+              Estado *
+            </label>
+            <select
+              v-model="form.estado"
+              required
+              class="input"
+              :class="{ 'border-red-500': form.errors.estado }"
+            >
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+            <p v-if="form.errors.estado" class="text-red-500 text-sm mt-1">
+              {{ form.errors.estado }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div>
+          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
+            Descripción
+          </label>
+          <textarea
+            v-model="form.descripcion"
+            rows="3"
+            class="input"
+            :class="{ 'border-red-500': form.errors.descripcion }"
+            placeholder="Descripción del servicio (opcional)"
+          ></textarea>
+          <p v-if="form.errors.descripcion" class="text-red-500 text-sm mt-1">
+            {{ form.errors.descripcion }}
+          </p>
+        </div>
+
+        <!-- Duración y Precio -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
+              Duración Estimada (minutos)
             </label>
             <input
               v-model.number="form.duracion_estimada"
               type="number"
               min="1"
-              required
               class="input"
+              :class="{ 'border-red-500': form.errors.duracion_estimada }"
+              placeholder="ej: 30"
             />
+            <p v-if="form.errors.duracion_estimada" class="text-red-500 text-sm mt-1">
+              {{ form.errors.duracion_estimada }}
+            </p>
           </div>
 
           <div>
@@ -70,13 +108,23 @@
               min="0"
               required
               class="input"
+              :class="{ 'border-red-500': form.errors.precio }"
+              placeholder="ej: 25.00"
             />
+            <p v-if="form.errors.precio" class="text-red-500 text-sm mt-1">
+              {{ form.errors.precio }}
+            </p>
           </div>
         </div>
 
+        <!-- Botones -->
         <div class="flex gap-3 pt-4">
-          <button type="submit" class="btn-primary">
-            Guardar Cambios
+          <button 
+            type="submit" 
+            class="btn-primary"
+            :disabled="form.processing"
+          >
+            {{ form.processing ? 'Guardando...' : 'Guardar Cambios' }}
           </button>
           <Link :href="route('services.index')" class="btn-secondary">
             Cancelar
@@ -88,31 +136,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 
-const serviceId = window.location.pathname.split('/').filter(Boolean).pop();
+const props = defineProps({
+  service: {
+    type: Object,
+    required: true,
+  },
+});
 
-const mockServices = {
-  '1': { id: 1, nombre: 'Corte de cabello', descripcion: 'Corte clásico de caballero', duracion_estimada: 30, precio: 15.00 },
-  '2': { id: 2, nombre: 'Afeitado', descripcion: 'Afeitado con navaja y toalla caliente', duracion_estimada: 20, precio: 10.00 },
-  '3': { id: 3, nombre: 'Corte + Barba', descripcion: 'Corte y arreglo de barba', duracion_estimada: 45, precio: 25.00 },
-  '4': { id: 4, nombre: 'Coloración', descripcion: 'Tinte y tratamiento', duracion_estimada: 60, precio: 40.00 },
-};
-
-const currentService = mockServices[serviceId] || mockServices['1'];
-
-const form = ref({
-  nombre: currentService.nombre,
-  descripcion: currentService.descripcion,
-  duracion_estimada: currentService.duracion_estimada,
-  precio: currentService.precio,
+const form = useForm({
+  nombre: props.service.nombre,
+  descripcion: props.service.descripcion || '',
+  duracion_estimada: props.service.duracion_estimada || 40,
+  precio: props.service.precio,
+  estado: props.service.estado,
 });
 
 const handleSubmit = () => {
-  alert('Servicio actualizado exitosamente (funcionalidad de backend pendiente)');
-  router.visit(route('services.index'));
+  form.put(route('services.update', props.service.id), {
+    preserveScroll: true,
+  });
 };
 </script>

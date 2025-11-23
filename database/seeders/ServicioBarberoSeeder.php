@@ -70,10 +70,6 @@ class ServicioBarberoSeeder extends Seeder
         $this->command->info('✨ Vinculación completada exitosamente.');
     }
 
-    /**
-     * Asigna servicios usando el modelo intermedio (hasMany)
-     * evitando duplicados con firstOrCreate.
-     */
     private function asignarServicios($barbero, $servicios, $nombreLog)
     {
 

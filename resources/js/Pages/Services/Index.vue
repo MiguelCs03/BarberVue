@@ -19,6 +19,7 @@
         <div class="flex-1 max-w-md">
           <input
             v-model="searchQuery"
+            @input="handleSearch"
             type="text"
             placeholder="Buscar servicios..."
             class="input w-full"
@@ -39,12 +40,12 @@
     <Card>
       <DataTable
         :columns="columns"
-        :data="filteredServices"
+        :data="services.data"
         :actions="actions"
       >
         <template #cell-precio="{ value }">
           <span class="font-semibold" :style="{ color: 'var(--color-primary)' }">
-            Bs. {{ value.toFixed(2) }}
+            Bs. {{ Number(value).toFixed(2) }}
           </span>
         </template>
 
@@ -53,81 +54,82 @@
             {{ value }} min
           </Badge>
         </template>
+
+        <template #cell-estado="{ value }">
+          <Badge :variant="value === 'activo' ? 'success' : 'danger'">
+            {{ value === 'activo' ? 'Activo' : 'Inactivo' }}
+          </Badge>
+        </template>
+        
+        <template #cell-descripcion="{ value }">
+          <span :style="{ color: value && value.trim() ? 'var(--text-primary)' : 'var(--text-secondary)' }">
+            {{ value && value.trim() ? value : 'N/A' }}
+          </span>
+        </template>
+
       </DataTable>
+
+      <!-- Pagination -->
+      <div v-if="services.links && services.links.length > 3" class="mt-4 flex justify-between items-center">
+        <div :style="{ color: 'var(--text-secondary)' }">
+          Mostrando {{ services.from }} - {{ services.to }} de {{ services.total }}
+        </div>
+        <div class="flex gap-2">
+          <template v-for="link in services.links" :key="link.label">
+            <Link
+              v-if="link.url"
+              :href="link.url"
+              :class="[
+                'px-3 py-1 rounded',
+                link.active ? 'btn-primary' : 'btn-secondary'
+              ]"
+              v-html="link.label"
+            />
+            <span
+              v-else
+              :class="['px-3 py-1 rounded btn-secondary opacity-50 cursor-not-allowed']"
+              v-html="link.label"
+            />
+          </template>
+        </div>
+      </div>
     </Card>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
 import DataTable from '@/Components/DataTable.vue';
+import { 
+  EyeIcon, 
+  PencilIcon, 
+  TrashIcon 
+} from '@heroicons/vue/24/outline';
 
-// Static mock data matching database schema
-const services = ref([
-  {
-    id: 1,
-    nombre: 'Corte de cabello',
-    descripcion: 'Corte clásico de caballero',
-    duracion_estimada: 30,
-    precio: 15.00,
-  },
-  {
-    id: 2,
-    nombre: 'Afeitado',
-    descripcion: 'Afeitado con navaja y toalla caliente',
-    duracion_estimada: 20,
-    precio: 10.00,
-  },
-  {
-    id: 3,
-    nombre: 'Corte + Barba',
-    descripcion: 'Corte y arreglo de barba',
-    duracion_estimada: 45,
-    precio: 25.00,
-  },
-  {
-    id: 4,
-    nombre: 'Coloración',
-    descripcion: 'Tinte y tratamiento',
-    duracion_estimada: 60,
-    precio: 40.00,
-  },
-  {
-    id: 5,
-    nombre: 'Tratamiento capilar',
-    descripcion: 'Mascarilla y secado profesional',
-    duracion_estimada: 40,
-    precio: 20.00,
-  },
-  {
-    id: 6,
-    nombre: 'Perfilado de barba',
-    descripcion: 'Perfilado detalle',
-    duracion_estimada: 15,
-    precio: 8.00,
-  },
-  {
-    id: 7,
-    nombre: 'Lavado express',
-    descripcion: 'Lavado y secado rápido',
-    duracion_estimada: 15,
-    precio: 6.00,
-  },
-  {
-    id: 8,
-    nombre: 'Masaje craneal',
-    descripcion: 'Masaje relajante de cuero cabelludo',
-    duracion_estimada: 20,
-    precio: 12.00,
-  },
-]);
+// Props recibidos del backend
+const props = defineProps({
+  services: Object,
+  filters: Object,
+});
 
-// Filters
-const searchQuery = ref('');
+// Search query sincronizado con filtros del backend
+const searchQuery = ref(props.filters.search || '');
+
+// Debounce para búsqueda
+let searchTimeout = null;
+const handleSearch = () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    router.get(route('services.index'), { search: searchQuery.value }, {
+      preserveState: true,
+      preserveScroll: true,
+    });
+  }, 300);
+};
 
 // Table columns
 const columns = [
@@ -135,40 +137,35 @@ const columns = [
   { key: 'descripcion', label: 'Descripción' },
   { key: 'duracion_estimada', label: 'Duración' },
   { key: 'precio', label: 'Precio' },
+  { key: 'estado', label: 'Estado' },
 ];
 
-// Table actions
+
 const actions = [
   {
     label: 'Ver',
+    icon:EyeIcon,
     handler: (service) => router.visit(route('services.show', service.id)),
     variant: 'primary',
   },
   {
     label: 'Editar',
+    icon:PencilIcon,
     handler: (service) => router.visit(route('services.edit', service.id)),
     variant: 'primary',
   },
   {
     label: 'Eliminar',
+    icon:TrashIcon,
     handler: (service) => {
       if (confirm(`¿Estás seguro de eliminar "${service.nombre}"?`)) {
-        alert('Funcionalidad de eliminación pendiente (backend)');
+        router.delete(route('services.destroy', service.id), {
+          preserveScroll: true,
+        });
       }
     },
     variant: 'danger',
   },
 ];
 
-// Filtered services
-const filteredServices = computed(() => {
-  if (!searchQuery.value) return services.value;
-
-  const query = searchQuery.value.toLowerCase();
-  return services.value.filter(
-    (service) =>
-      service.nombre.toLowerCase().includes(query) ||
-      service.descripcion.toLowerCase().includes(query)
-  );
-});
 </script>
