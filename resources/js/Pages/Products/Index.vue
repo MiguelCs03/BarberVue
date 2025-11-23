@@ -56,7 +56,7 @@
       >
         <template #cell-precio_venta="{ value }">
           <span class="font-semibold" :style="{ color: 'var(--color-primary)' }">
-            Bs. {{ value.toFixed(2) }}
+            Bs. {{ value ? Number(value).toFixed(2) : '0.00' }}
           </span>
         </template>
 
@@ -83,57 +83,10 @@ import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
 import DataTable from '@/Components/DataTable.vue';
 
-// Static mock data matching database schema
-const products = ref([
-  {
-    id: 1,
-    nombre: 'Shampoo profesional',
-    descripcion: 'Shampoo para todo tipo de cabello 500ml',
-    precio_venta: 8.50,
-    stock_minimo: 2,
-    stock_actual: 10,
-  },
-  {
-    id: 2,
-    nombre: 'Pomada',
-    descripcion: 'Pomada para peinar 100ml',
-    precio_venta: 6.00,
-    stock_minimo: 2,
-    stock_actual: 15,
-  },
-  {
-    id: 3,
-    nombre: 'Acondicionador',
-    descripcion: 'Acondicionador 500ml',
-    precio_venta: 7.50,
-    stock_minimo: 2,
-    stock_actual: 12,
-  },
-  {
-    id: 4,
-    nombre: 'Gel fijador',
-    descripcion: 'Gel para peinar 150ml',
-    precio_venta: 5.50,
-    stock_minimo: 2,
-    stock_actual: 20,
-  },
-  {
-    id: 5,
-    nombre: 'Cera para cabello',
-    descripcion: 'Cera moldeadora 80ml',
-    precio_venta: 12.00,
-    stock_minimo: 3,
-    stock_actual: 1,
-  },
-  {
-    id: 6,
-    nombre: 'Aceite para barba',
-    descripcion: 'Aceite nutritivo para barba 50ml',
-    precio_venta: 15.00,
-    stock_minimo: 2,
-    stock_actual: 0,
-  },
-]);
+// Receive products from backend
+const props = defineProps({
+  productos: Array,
+});
 
 // Filters
 const searchQuery = ref('');
@@ -163,7 +116,9 @@ const actions = [
     label: 'Eliminar',
     handler: (product) => {
       if (confirm(`¿Estás seguro de eliminar "${product.nombre}"?`)) {
-        alert('Funcionalidad de eliminación pendiente (backend)');
+        router.delete(route('products.destroy', product.id), {
+          preserveScroll: true,
+        });
       }
     },
     variant: 'danger',
@@ -172,7 +127,7 @@ const actions = [
 
 // Filtered products
 const filteredProducts = computed(() => {
-  let filtered = products.value;
+  let filtered = props.productos;
 
   // Filter by search query
   if (searchQuery.value) {
@@ -180,7 +135,7 @@ const filteredProducts = computed(() => {
     filtered = filtered.filter(
       (product) =>
         product.nombre.toLowerCase().includes(query) ||
-        product.descripcion.toLowerCase().includes(query)
+        (product.descripcion && product.descripcion.toLowerCase().includes(query))
     );
   }
 
