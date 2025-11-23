@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\AppointmentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -41,6 +42,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
     Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
     Route::get('/inventory/{id}', [InventoryController::class, 'show'])->name('inventory.show');
+    
+    // Appointment Management Routes
+    Route::resource('appointments', AppointmentController::class);
     
     // Analytics Route
     Route::get('/analytics/visits', function () {
