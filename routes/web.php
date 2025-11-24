@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\CitaController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +46,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/services/{id}/edit', [ServiceController::class, 'edit'])->name('services.edit');
     Route::put('/services/{id}', [ServiceController::class, 'update'])->name('services.update');
     Route::delete('/services/{id}', [ServiceController::class, 'destroy'])->name('services.destroy');
+
+    Route::get('/cita-cliente/create',[CitaController::class,'create'])->name('cita-cliente.create');
+    Route::get('/cita-cliente/index',[CitaController::class,'create'])->name('citas.index');
+
 
     // Inventory Management Routes
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');

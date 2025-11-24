@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cita;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class CitaController extends Controller
 {
@@ -21,6 +22,7 @@ class CitaController extends Controller
     public function create()
     {
         //
+        return Inertia::render('Cita/CreateCitaCliente');
     }
 
     /**
