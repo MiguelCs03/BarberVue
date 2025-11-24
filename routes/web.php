@@ -49,7 +49,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/cita-cliente/create',[CitaController::class,'create'])->name('cita-cliente.create');
     Route::get('/cita-cliente/index',[CitaController::class,'create'])->name('citas.index');
-
+    Route::post('/cita/store',[CitaController::class, 'store'])->name('create');
+    
 
     // Inventory Management Routes
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
@@ -73,6 +74,7 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('ThemeTest');
     })->name('theme.test');
 });
+
 
 require __DIR__.'/auth.php';
 

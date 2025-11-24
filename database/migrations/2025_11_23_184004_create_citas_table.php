@@ -16,11 +16,11 @@ return new class extends Migration
             $table->foreignId('cliente_id')->constrained('clientes');
             $table->foreignId('barbero_id')->nullable()->constrained('barberos');
             $table->foreignId('tipo_pago_id')->constrained('tipo_pagos');
-            $table->foreignId('porcentaje_id')->constrained('porcentajes');
             $table->dateTime('fecha');
             $table->string('estado',50)->default('pendiente');
             $table->decimal('pago_inicial', 10, 2)->default(0);
-
+            $table->decimal('monto_total', 10, 2)->default(0);
+            $table->decimal('porcentaje_cita', 5, 2)->default(0);
             $table->timestamps();
         });
     }

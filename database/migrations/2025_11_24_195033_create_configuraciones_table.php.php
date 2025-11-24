@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('porcentajes', function (Blueprint $table) {
+        //
+        Schema::create('configuraciones', function (Blueprint $table) {
             $table->id();
-            $table->decimal('porcentaje', 5, 2)->default(3);//3 % por defecto
-            $table->string('estado',50)->default('activo');
+            $table->string('nombre')->unique();
+            $table->text('valor')->nullable(); 
+            $table->string('descripcion')->nullable(); 
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('porcentajes');
+        Schema::dropIfExists('configuraciones');
     }
 };

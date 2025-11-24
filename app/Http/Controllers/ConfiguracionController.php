@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Porcentaje;
+use App\Models\Configuracion;
 use Illuminate\Http\Request;
 
-class PorcentajeController extends Controller
+class ConfiguracionController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -23,6 +23,7 @@ class PorcentajeController extends Controller
         //
     }
 
+    
     /**
      * Store a newly created resource in storage.
      */
@@ -34,7 +35,7 @@ class PorcentajeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Porcentaje $porcentaje)
+    public function show(Configuracion $configuracion)
     {
         //
     }
@@ -42,7 +43,7 @@ class PorcentajeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Porcentaje $porcentaje)
+    public function edit(Configuracion $configuracion)
     {
         //
     }
@@ -50,7 +51,7 @@ class PorcentajeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Porcentaje $porcentaje)
+    public function update(Request $request, Configuracion $configuracion)
     {
         //
     }
@@ -58,7 +59,7 @@ class PorcentajeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Porcentaje $porcentaje)
+    public function destroy(Configuracion $configuracion)
     {
         //
     }

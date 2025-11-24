@@ -14,8 +14,9 @@ class Cita extends Model
         'fecha',
         'pago_inicial',
         'pago_id',//id de pago facil o stripe
-        //foraneas
-        'porcentaje_id',
+        //foraneas,
+        'monto_total',
+        'porcentaje_cita',
         'barbero_id',
         'cliente_id',
         'tipo_pago_id'
@@ -27,10 +28,6 @@ class Cita extends Model
     public function tipoPago()
     {
         return $this->belongsTo(TipoPago::class, 'pago_id');
-    }
-
-    public function porcentaje(){
-        return $this->belongsTo(Porcentaje::class, 'porcentaje_id');
     }
     public function barbero(){
         return $this->belongsTo(Barbero::class, 'barbero_id');

@@ -19,10 +19,9 @@ class ServicioBarberoSeeder extends Seeder
         // 1. Recuperamos los barberos a través de sus usuarios
         // Usamos 'with' para traer la relación del perfil de barbero y optimizar consultas
         //luego hay que cabiar a
-        $userB1 = User::where('email', 'barbero1@barbershop.com')->with('barbero')->first();
-        $userB2 = User::where('email', 'barbero2@barbershop.com')->with('barbero')->first();
-        $userB3 = User::where('email', 'barbero3@barbershop.com')->with('barbero')->first();
-
+        $userB1 = User::where('email', 'barbero1@gmail.com')->with('barbero')->first();
+        $userB2 = User::where('email', 'barbero2@gmail.com')->with('barbero')->first();
+        $userB3 = User::where('email', 'barbero3@gmail.com')->with('barbero')->first();
         // Validamos que existan antes de continuar
         if (!$userB1 || !$userB2 || !$userB3) {
             $this->command->error('❌ Error: No se encontraron los usuarios barberos. Ejecuta primero BarberoSeeder.');

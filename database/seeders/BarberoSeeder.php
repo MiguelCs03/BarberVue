@@ -26,7 +26,7 @@ class BarberoSeeder extends Seeder
 
         foreach ($nombres as $index => $nombre) {
             $numero = $index + 1;
-            $email = "barbero{$numero}@barbershop.com"; 
+            $email = "barbero{$numero}@gmail.com"; 
 
             $this->command->info("Procesando: {$nombre} ({$email})");
 
@@ -35,7 +35,7 @@ class BarberoSeeder extends Seeder
                 ['email' => $email], // Condición de búsqueda
                 [
                     'name' => $nombre,
-                    'password' => Hash::make('password123'),
+                    'password' => Hash::make('123456789'),
                     'rol' => 'barbero',//esto debe cambiar con el spatie
                 ] 
             );
@@ -51,6 +51,7 @@ class BarberoSeeder extends Seeder
                 ['usuario_id' => $usuario->id], 
                 [
                     'estado_barbero' => 'disponible',
+                    
                 ]
             );
 
