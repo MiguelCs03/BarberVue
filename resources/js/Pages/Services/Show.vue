@@ -27,7 +27,7 @@
             </Badge>
           </div>
           <p :style="{ color: 'var(--text-secondary)' }">
-            Ultima Actualización {{ formatRelativeDate(service.updated_at) }}
+            Ultima Actualización {{ DateHelper.formatRelativeDate(service.updated_at) }}
           </p>
         </div>
 
@@ -141,10 +141,10 @@
                 Fecha de Creación
               </label>
               <p class="font-medium" :style="{ color: 'var(--text-primary)' }">
-                {{ formatDate(service.created_at) }}
+                {{ DateHelper.formatDate(service.created_at) }}
               </p>
               <p class="text-sm mt-1" :style="{ color: 'var(--text-secondary)' }">
-                {{ formatRelativeDate(service.created_at) }}
+                {{ DateHelper.formatRelativeDate(service.created_at) }}
               </p>
             </div>
           </div>
@@ -162,10 +162,10 @@
                 Última Actualización
               </label>
               <p class="font-medium" :style="{ color: 'var(--text-primary)' }">
-                {{ formatDate(service.updated_at) }}
+                {{ DateHelper.formatDate(service.updated_at) }}
               </p>
               <p class="text-sm mt-1" :style="{ color: 'var(--text-secondary)' }">
-                {{ formatRelativeDate(service.updated_at) }}
+                {{ DateHelper.formatRelativeDate(service.updated_at) }}
               </p>
             </div>
           </div>
@@ -180,7 +180,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
-import { formatDate, formatRelativeDate } from '@/helpers/dateHelper';
+import { DateHelper } from '@/helpers/dateHelper';
 const props = defineProps({
   service: {
     type: Object,
