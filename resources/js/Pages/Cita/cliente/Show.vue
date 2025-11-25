@@ -216,7 +216,7 @@
     },
   });
 
-  const page = usePage();
+  //const page = usePage();
   
   const getStatusBadgeVariant = (status) => {
     const variants = {
@@ -257,39 +257,39 @@
     });
   };
 
-  // Detectar mensajes flash al montar el componente
-  onMounted(() => {
-    checkFlashMessages();
-  });
+//   // Detectar mensajes flash al montar el componente
+//   onMounted(() => {
+//     checkFlashMessages();
+//   });
 
   
-  watch(() => page.props.flash, () => {
-    checkFlashMessages();
-  }, { deep: true });
+//   watch(() => page.props.flash, () => {
+//     checkFlashMessages();
+//   }, { deep: true });
 
-  const checkFlashMessages = () => {
-    const flash = page.props.flash;
+//   const checkFlashMessages = () => {
+//     const flash = page.props.flash;
     
-    if (flash?.success) {
-      Swal.fire({
-        title: '¡Éxito!',
-        text: flash.success,
-        icon: 'success',
-        confirmButtonColor: 'var(--color-primary)',
-        background: 'var(--bg-primary)',
-        color: 'var(--text-primary)'
-      });
-    }
+//     if (flash?.success) {
+//       Swal.fire({
+//         title: '¡Éxito!',
+//         text: flash.success,
+//         icon: 'success',
+//         confirmButtonColor: 'var(--color-primary)',
+//         background: 'var(--bg-primary)',
+//         color: 'var(--text-primary)'
+//       });
+//     }
     
-    if (flash?.error) {
-      Swal.fire({
-        title: 'Error',
-        text: flash.error,
-        icon: 'error',
-        confirmButtonColor: '#EF4444',
-        background: 'var(--bg-primary)',
-        color: 'var(--text-primary)'
-      });
-    }
-  };
+//     if (flash?.error) {
+//       Swal.fire({
+//         title: 'Error',
+//         text: flash.error,
+//         icon: 'error',
+//         confirmButtonColor: '#EF4444',
+//         background: 'var(--bg-primary)',
+//         color: 'var(--text-primary)'
+//       });
+//     }
+//   };
   </script>

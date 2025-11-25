@@ -126,20 +126,31 @@
                         <label for="password" class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
                             Contraseña
                         </label>
-                        <input
-                            id="password"
-                            type="password"
-                            v-model="form.password"
-                            required
-                            autocomplete="current-password"
-                            class="w-full px-4 py-3 rounded-lg border-2 transition-all focus:outline-none focus:border-red-500"
-                            :style="{ 
-                                backgroundColor: 'var(--bg-primary)',
-                                borderColor: form.errors.password ? '#EF4444' : 'var(--text-secondary)',
-                                color: 'var(--text-primary)'
-                            }"
-                            placeholder="••••••••"
-                        />
+                        <div class="relative">
+                            <input
+                                id="password"
+                                :type="showPassword ? 'text' : 'password'"
+                                v-model="form.password"
+                                required
+                                autocomplete="current-password"
+                                class="w-full px-4 py-3 rounded-lg border-2 transition-all focus:outline-none focus:border-red-500 pr-10"
+                                :style="{ 
+                                    backgroundColor: 'var(--bg-primary)',
+                                    borderColor: form.errors.password ? '#EF4444' : 'var(--text-secondary)',
+                                    color: 'var(--text-primary)'
+                                }"
+                                placeholder="••••••••"
+                            />
+                            <button 
+                                type="button"
+                                @click="showPassword = !showPassword"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer transition-colors hover:text-red-500"
+                                :style="{ color: 'var(--text-secondary)' }"
+                            >
+                                <EyeIcon v-if="!showPassword" class="h-5 w-5" />
+                                <EyeSlashIcon v-else class="h-5 w-5" />
+                            </button>
+                        </div>
                         <p v-if="form.errors.password" class="mt-2 text-sm text-red-600">{{ form.errors.password }}</p>
                     </div>
 
@@ -201,7 +212,9 @@
 
 <script setup>
 import Checkbox from '@/Components/Checkbox.vue';
+import { EyeIcon ,EyeSlashIcon} from '@heroicons/vue/24/outline';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 defineProps({
     canResetPassword: {
@@ -211,6 +224,7 @@ defineProps({
         type: String,
     },
 });
+const showPassword = ref(false);
 
 const form = useForm({
     email: '',

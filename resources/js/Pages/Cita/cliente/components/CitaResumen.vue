@@ -57,10 +57,10 @@
       type: Number,
       required: true
     },
-    porcentajeReserva: {
-      type: Number,
-      required: true
-    },
+    // porcentajeReserva: {
+    //   type: Number,
+    //   required: true
+    // },
     pagoInicial: {
       type: Number,
       required: true

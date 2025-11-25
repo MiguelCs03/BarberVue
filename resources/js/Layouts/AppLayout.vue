@@ -25,7 +25,7 @@
         </div>
       </div>
     </nav>
-
+    
     <!-- Main Content Area -->
     <div class="flex flex-1">
       <!-- Sidebar Navigation -->
@@ -34,6 +34,7 @@
         :style="{ backgroundColor: 'var(--bg-secondary)' }"
       >
         <nav class="p-4 space-y-2">
+          
           <!-- Dynamic Menu Items -->
           <template v-for="item in menuItems" :key="item.id">
             <!-- Parent Item (with or without children) -->
@@ -70,6 +71,20 @@
             </Link>
           </template>
         </nav>
+        <!-- Logout Button -->
+        <div class="p-4 border-t" :style="{ borderColor: 'var(--border-color)' }">
+          <button
+            @click="logout"
+            class="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-all hover:bg-red-50 dark:hover:bg-red-900/20 group"
+          >
+            <ArrowLeftStartOnRectangleIcon
+              class="w-5 h-5 flex-shrink-0 text-red-500 group-hover:text-red-600 transition-colors" 
+            />
+            <span class="font-medium text-red-500 group-hover:text-red-600 transition-colors">
+              Cerrar Sesión
+            </span>
+          </button>
+        </div>
       </aside>
 
       <!-- Main Content -->
@@ -108,7 +123,7 @@
 
 <script setup>
 import { computed, onMounted, watch } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage,router } from '@inertiajs/vue3';
 import ThemeSwitcher from '@/Components/ThemeSwitcher.vue';
 import AccessibilityControls from '@/Components/AccessibilityControls.vue';
 import GlobalSearch from '@/Components/GlobalSearch.vue';
@@ -116,7 +131,8 @@ import MenuIcon from '@/Components/MenuIcon.vue';
 import { useTheme } from '@/composables/useTheme';
 import { useAccessibility } from '@/composables/useAccessibility';
 import { usePageVisits } from '@/composables/usePageVisits';
-
+import { ArrowLeftStartOnRectangleIcon } from '@heroicons/vue/24/outline';
+import Swal from 'sweetalert2';
 const page = usePage();
 const currentYear = new Date().getFullYear();
 
@@ -170,6 +186,40 @@ watch(() => page.url, () => {
   trackPageVisit(pageName);
 });
 
+watch(() => page.props.flash, (newFlash) => {
+  // Si no hay flash o está vacío, no hacemos nada
+  if (!newFlash) return;
+
+  // 1. Mensaje de Éxito
+  if (newFlash.success) {
+    Swal.fire({
+      icon: 'success',
+      title: '¡Éxito!',
+      text: newFlash.success,
+      timer: 3000,
+      showConfirmButton: false,
+      background: 'var(--bg-primary)',
+      color: 'var(--text-primary)'
+    });
+    // IMPORTANTE: Limpiar el mensaje para que no salga al navegar atrás
+    page.props.flash.success = null; 
+  }
+
+  // 2. Mensaje de Error
+  if (newFlash.error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: newFlash.error,
+      confirmButtonColor: '#EF4444',
+      background: 'var(--bg-primary)',
+      color: 'var(--text-primary)'
+    });
+    // IMPORTANTE: Limpiar el mensaje
+    //page.props.flash.error = null;
+  }
+}, { deep: true, immediate: true });
+
 const isActive = (routeName) => {
   const currentRoute = page.url;
   
@@ -181,5 +231,8 @@ const isActive = (routeName) => {
   
   // Exact match
   return currentRoute === `/${routeName}` || currentRoute === routeName;
+};
+const logout = () => {
+  router.post(route('logout'));
 };
 </script>

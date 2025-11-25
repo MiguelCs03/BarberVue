@@ -106,7 +106,8 @@ class CitaController extends Controller
                         ->exists();
                 if($citaExistenteConOtroBarbero){
                     return redirect()->back()
-                        ->with('error', 'Ya tienes una cita agendada en ese horario con otro barbero')                       ->withInput();
+                        ->with('error', 'Ya tienes una cita agendada en ese horario con otro barbero')                       
+                        ->withInput();
                 }
             }
 
@@ -136,8 +137,9 @@ class CitaController extends Controller
                 //$totalCitasPendientes = $citasPendientesSinBarberoAsignado + $citasPendientesDistinct;
                 $totalCitasPendientes = $citasEnFechaHora->count();
                 if (($totalCitasPendientes + 1) > $totalBarberos) {
-                    return back()
-                        ->with('error', 'Todos los barberos están ocupados en ese horario.');
+                    return redirect()->back()
+                        ->with('error', 'Todos los barberos están ocupados en ese horario.')
+                        ->withInput();
                         //->withInput();
                 }
 
@@ -179,7 +181,7 @@ class CitaController extends Controller
                 'data' => $validated
             ]);
 
-            return back()
+            return redirect()->back()
                 ->with('error', 'Error al registrar la cita. Por favor intenta nuevamente.')
                 ->withInput();
         }
@@ -260,17 +262,25 @@ class CitaController extends Controller
 
             // Validar estado actual
             if ($cita->estado === 'completada') {
-                return redirect()->back()->with('error', 'No se puede cancelar una cita que ya ha sido completada.');
+                return redirect()->back()
+                ->with('error', 'No se puede cancelar una cita que ya ha sido completada.')
+                ->withInput();
             }
 
             $cita->estado = 'cancelada';
             $cita->save();
 
-            return redirect()->back()->with('success', 'Cita cancelada exitosamente.');
+            return redirect()
+            ->back()
+            ->with('success', 'Cita cancelada exitosamente.')
+            ->withInput();
 
         } catch (Exception $e) {
             Log::error('Error al cancelar cita: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Ocurrió un error al intentar cancelar la cita.');
+            return redirect()
+            ->back()
+            ->with('error', 'Ocurrió un error al intentar cancelar la cita.')
+            ->withInput();
         }
     }
     /**

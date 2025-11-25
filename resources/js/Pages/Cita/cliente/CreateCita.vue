@@ -73,7 +73,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'; // Agrega onMounted
-import { Head, Link, router, usePage } from '@inertiajs/vue3'; // Agrega usePage
+import { Head, Link, router } from '@inertiajs/vue3'; // Agrega usePage
 
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -95,7 +95,7 @@ const props = defineProps({
 
 // Constantes de zona horaria
 const TIMEZONE = 'America/La_Paz';
-const page = usePage();
+
 // Helper: Obtener fecha/hora actual en Bolivia
 const getNowBolivia = () => {
   return new Date(new Date().toLocaleString('en-US', { timeZone: TIMEZONE }));
@@ -349,15 +349,17 @@ const confirmarCita = () => {
   
   router.post('/cita/store', citaData, {
     preserveScroll: true,
+    preserveState:true,
     // onSuccess: () => {
     // //  alert('¡Cita confirmada exitosamente!');
     // },
     onError: (errors) => {
       console.log(errors)
       if (errors && errors.error) {
+        const firstError = Object.values(errors)[0];
         Swal.fire({
           title: 'Error',
-          text: errors.error,
+          text: firstError,
           icon: 'error',
           confirmButtonColor: '#EF4444',
           background: 'var(--bg-primary)',
@@ -372,6 +374,20 @@ const confirmarCita = () => {
           background: 'var(--bg-primary)',
           color: 'var(--text-primary)'
         });
+      }
+      onFinish: () => {
+        // Verificar si llegó un mensaje flash de error después de la petición
+        // Esto es crucial para capturar el "return back()->with('error')"
+        if (page.props.flash?.error) {
+          Swal.fire({
+            title: 'Error',
+            text: page.props.flash.error,
+            icon: 'error',
+            confirmButtonColor: '#EF4444',
+            background: 'var(--bg-primary)',
+            color: 'var(--text-primary)'
+          });
+        }
       }
     }
   });
@@ -447,35 +463,35 @@ watch(selectedBarbero, (newVal, oldVal) => {
   selectedServicios.value = serviciosPorBarbero.value[newKey] || [];
 });
 
-onMounted(() => {
-  console.log('Componente montado');
-  console.log('Props iniciales:', page.props);
-  console.log('Flash inicial:', page.props.flash);
-  checkFlashMessages();
-});
-// Observar cambios (por si Inertia hace un partial reload o redirect back)
-watch(() => page.props.flash, (newFlash, oldFlash) => {
-  console.log('Flash cambió de:', oldFlash, 'a:', newFlash);
-  if (newFlash && (newFlash.error || newFlash.success)) {
-    checkFlashMessages();
-  }
-}, { deep: true, immediate: true });
+// onMounted(() => {
+//   console.log('Componente montado');
+//   console.log('Props iniciales:', page.props);
+//   console.log('Flash inicial:', page.props.flash);
+//   checkFlashMessages();
+// });
+// // Observar cambios (por si Inertia hace un partial reload o redirect back)
+// watch(() => page.props.flash, (newFlash, oldFlash) => {
+//   console.log('Flash cambió de:', oldFlash, 'a:', newFlash);
+//   if (newFlash && (newFlash.error || newFlash.success)) {
+//     checkFlashMessages();
+//   }
+// }, { deep: true, immediate: true });
 
-const checkFlashMessages = () => {
-  const flash = page.props.flash;
+// const checkFlashMessages = () => {
+//   const flash = page.props.flash;
   
   
   
-  // Mensaje de Error (Business Logic, ej: "Horario ocupado")
-  if (flash?.error) {
-    Swal.fire({
-      title: 'Error',
-      text: flash.error,
-      icon: 'error',
-      confirmButtonColor: '#EF4444',
-      background: 'var(--bg-primary)',
-      color: 'var(--text-primary)'
-    });
-  }
-};
+//   // Mensaje de Error (Business Logic, ej: "Horario ocupado")
+//   if (flash?.error) {
+//     Swal.fire({
+//       title: 'Error',
+//       text: flash.error,
+//       icon: 'error',
+//       confirmButtonColor: '#EF4444',
+//       background: 'var(--bg-primary)',
+//       color: 'var(--text-primary)'
+//     });
+//   }
+// };
 </script>

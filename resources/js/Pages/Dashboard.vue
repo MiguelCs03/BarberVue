@@ -137,13 +137,21 @@
         </h2>
         <div class="grid grid-cols-2 gap-3">
           <Link
-            :href="route('appointments.create')"
+            :href="route('citas-cliente.index')"
             class="flex flex-col items-center gap-2 p-4 rounded-lg transition-all hover:shadow-md"
             :style="{ backgroundColor: 'var(--bg-secondary)' }"
           >
-            <svg class="w-8 h-8" :style="{ color: 'var(--color-primary)' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
+          <CalendarDaysIcon class="w-8 h-8" :style="{ color: 'var(--color-primary)' }" />
+            <span class="text-sm font-medium text-center" :style="{ color: 'var(--text-primary)' }">
+              Mis Citas
+            </span>
+          </Link>
+          <Link
+            :href="route('citas-cliente.create')"
+            class="flex flex-col items-center gap-2 p-4 rounded-lg transition-all hover:shadow-md"
+            :style="{ backgroundColor: 'var(--bg-secondary)' }"
+          >
+          <PlusCircleIcon class="w-8 h-8" :style="{ color: 'var(--color-primary)' }" />
             <span class="text-sm font-medium text-center" :style="{ color: 'var(--text-primary)' }">
               Nueva Citas
             </span>
@@ -216,6 +224,8 @@ import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
+import { CalendarDaysIcon, PlusCircleIcon } from '@heroicons/vue/24/outline';
+
 
 // Mock data for recent appointments
 const recentAppointments = [
