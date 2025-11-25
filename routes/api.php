@@ -12,7 +12,7 @@ Route::get('/user', function (Request $request) {
 
 Route::prefix('citas')->name('api.citas.')->group(function () {
     // Listar/consultar (GET)
-    Route::post('/barberos-disponibles', [CitaController::class, 'getBarberosDisponibles'])
-        ->name('barberos-disponibles');    ///api.citas.barberos-disponibles, para acceder desde vue
+    // Route::post('/barberos-disponibles', [CitaController::class, 'getBarberosDisponibles'])
+    //     ->name('barberos-disponibles');    ///api.citas.barberos-disponibles, para acceder desde vue
     
 })->middleware('auth:sanctum');

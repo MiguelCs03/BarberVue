@@ -58,6 +58,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/citas-admin/{id}/show',[CitaController::class,'showAdministrativo'])->name('citas-admin.show');
     Route::get('/citas-admin/{id}/edit',[CitaController::class,'showAdministrativo'])->name('citas-admin.edit');
 
+    Route::post('/citas/barberos-disponibles', [CitaController::class, 'getBarberosDisponibles'])
+        ->name('barberos-disponibles');    ///api.citas.barberos-disponibles, para acceder desde vue
+    
 
     // Inventory Management Routes
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');

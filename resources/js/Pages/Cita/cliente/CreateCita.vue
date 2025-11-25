@@ -299,7 +299,7 @@ const cargarBarberosYServicios = async () => {
   loadingBarberos.value = true;
   
   try {
-    const response = await axios.post('/api/citas/barberos-disponibles', {
+    const response = await axios.post('/citas/barberos-disponibles', {
       fecha: selectedDate.value.date,
       hora: selectedHora.value
     });
@@ -353,6 +353,7 @@ const confirmarCita = () => {
     // //  alert('¡Cita confirmada exitosamente!');
     // },
     onError: (errors) => {
+      console.log(errors)
       if (errors && errors.error) {
         Swal.fire({
           title: 'Error',
@@ -447,29 +448,23 @@ watch(selectedBarbero, (newVal, oldVal) => {
 });
 
 onMounted(() => {
+  console.log('Componente montado');
+  console.log('Props iniciales:', page.props);
+  console.log('Flash inicial:', page.props.flash);
   checkFlashMessages();
 });
-
 // Observar cambios (por si Inertia hace un partial reload o redirect back)
-watch(() => page.props.flash, (newFlash) => {
-  console.log('Flash recibido:', newFlash); 
-  checkFlashMessages();
-}, { deep: true });
+watch(() => page.props.flash, (newFlash, oldFlash) => {
+  console.log('Flash cambió de:', oldFlash, 'a:', newFlash);
+  if (newFlash && (newFlash.error || newFlash.success)) {
+    checkFlashMessages();
+  }
+}, { deep: true, immediate: true });
 
 const checkFlashMessages = () => {
   const flash = page.props.flash;
   
-  // // Mensaje de Éxito
-  // if (flash?.success) {
-  //   Swal.fire({
-  //     title: '¡Éxito!',
-  //     text: flash.success,
-  //     icon: 'success',
-  //     confirmButtonColor: 'var(--color-primary)',
-  //     background: 'var(--bg-primary)',
-  //     color: 'var(--text-primary)'
-  //   });
-  // }
+  
   
   // Mensaje de Error (Business Logic, ej: "Horario ocupado")
   if (flash?.error) {
