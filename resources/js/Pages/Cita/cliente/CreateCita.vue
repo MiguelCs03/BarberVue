@@ -1,14 +1,11 @@
-
 <template>
   <Head title="Nueva Cita" />
 
   <AppLayout>
-    
-    <!-- ...resto del formulario... -->
     <!-- Page Header -->
     <div class="mb-6">
       <Link
-        :href="route('citas.index')"
+        :href="route('citas-cliente.index')"
         class="inline-flex items-center gap-2 mb-4 hover:opacity-75 transition-opacity"
         :style="{ color: 'var(--color-primary)' }"
       >
@@ -36,7 +33,11 @@
           @next-week="nextWeek"
         />
 
-        <TurnoSelector v-model="selectedTurno" />
+        <TurnoSelector 
+          v-model="selectedTurno"
+          :disabled="!isDateAvailable"
+          :selected-date="selectedDate"
+        />
 
         <HoursCarousel
           v-if="selectedDate && selectedTurno"
@@ -71,10 +72,11 @@
 </template>
 
 <script setup>
+import { ref, computed, watch, onMounted } from 'vue'; // Agrega onMounted
+import { Head, Link, router, usePage } from '@inertiajs/vue3'; // Agrega usePage
 
-import { ref, computed, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 import DateCarousel from './components/DateCarousel.vue';
@@ -84,13 +86,27 @@ import BarberoSelector from './components/BarberoSelector.vue';
 import ServiciosList from './components/ServiciosList.vue';
 import CitaResumen from './components/CitaResumen.vue';
 
-
 const props = defineProps({
   porcentajeReserva: {
     type: Number,
     default: 0
   }
 });
+
+// Constantes de zona horaria
+const TIMEZONE = 'America/La_Paz';
+const page = usePage();
+// Helper: Obtener fecha/hora actual en Bolivia
+const getNowBolivia = () => {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: TIMEZONE }));
+};
+
+// Helper: Obtener fecha específica en Bolivia (sin hora)
+const getDateBolivia = (year, month, day) => {
+  // Crear fecha en UTC y convertir a Bolivia
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  return new Date(date.toLocaleString('en-US', { timeZone: TIMEZONE }));
+};
 
 // Estado
 const currentWeekStart = ref(new Date());
@@ -104,7 +120,55 @@ const loadingBarberos = ref(false);
 const barberosDisponibles = ref([]);
 const todosServicios = ref([]);
 
-// Computed
+// Computed - Verifica si la fecha seleccionada está disponible
+const isDateAvailable = computed(() => {
+  if (!selectedDate.value) return false;
+  
+  const nowBolivia = getNowBolivia();
+  const [year, month, day] = selectedDate.value.date.split('-').map(Number);
+  const selectedDateBolivia = getDateBolivia(year, month, day);
+  
+  // Resetear horas para comparar solo fechas
+  const todayBolivia = new Date(nowBolivia.getFullYear(), nowBolivia.getMonth(), nowBolivia.getDate());
+  const selectedDateOnly = new Date(selectedDateBolivia.getFullYear(), selectedDateBolivia.getMonth(), selectedDateBolivia.getDate());
+  
+  return selectedDateOnly >= todayBolivia;
+});
+
+// Computed - Verifica si un turno específico está disponible
+const isTurnoAvailable = computed(() => {
+  return (turno) => {
+    if (!selectedDate.value) return false;
+    
+    const nowBolivia = getNowBolivia();
+    const [year, month, day] = selectedDate.value.date.split('-').map(Number);
+    const selectedDateBolivia = getDateBolivia(year, month, day);
+    
+    const todayBolivia = new Date(nowBolivia.getFullYear(), nowBolivia.getMonth(), nowBolivia.getDate());
+    const selectedDateOnly = new Date(selectedDateBolivia.getFullYear(), selectedDateBolivia.getMonth(), selectedDateBolivia.getDate());
+    
+    // Si es fecha futura, todos los turnos disponibles
+    if (selectedDateOnly > todayBolivia) return true;
+    
+    // Si no es hoy, no disponible
+    if (selectedDateOnly < todayBolivia) return false;
+    
+    // Si es hoy, verificar la hora actual
+    const currentHour = nowBolivia.getHours();
+    
+    switch (turno) {
+      case 'manana':
+        return currentHour < 12;
+      case 'tarde':
+        return currentHour < 18;
+      case 'noche':
+        return currentHour < 21;
+      default:
+        return false;
+    }
+  };
+});
+
 const availableHours = computed(() => {
   if (!selectedTurno.value || !selectedDate.value) return [];
   
@@ -124,56 +188,75 @@ const availableHours = computed(() => {
       startHour = 18;
       endHour = 21;
       break;
+    default:
+      return [];
   }
   
-  // Obtener fecha y hora actual
-  const now = new Date();
-  
-  // Crear fecha seleccionada correctamente (evitar problemas de zona horaria)
+  const nowBolivia = getNowBolivia();
   const [year, month, day] = selectedDate.value.date.split('-').map(Number);
-  const selectedDateObj = new Date(year, month - 1, day);
+  const selectedDateBolivia = getDateBolivia(year, month, day);
   
-  // Verificar si es hoy comparando solo año, mes y día
-  const isToday = 
-    selectedDateObj.getFullYear() === now.getFullYear() &&
-    selectedDateObj.getMonth() === now.getMonth() &&
-    selectedDateObj.getDate() === now.getDate();
+  // Comparar solo fechas (sin horas)
+  const todayBolivia = new Date(nowBolivia.getFullYear(), nowBolivia.getMonth(), nowBolivia.getDate());
+  const selectedDateOnly = new Date(selectedDateBolivia.getFullYear(), selectedDateBolivia.getMonth(), selectedDateBolivia.getDate());
   
+  // Si la fecha es anterior a hoy, no mostrar horarios
+  if (selectedDateOnly < todayBolivia) {
+    return [];
+  }
+  
+  // Verificar si es exactamente hoy
+  const isToday = selectedDateOnly.getTime() === todayBolivia.getTime();
+  
+  console.log('=== DEBUG INFO ===');
+  console.log('Hora actual Bolivia:', nowBolivia.toLocaleString('es-BO'));
+  console.log('Fecha seleccionada:', selectedDate.value.date);
+  console.log('Es hoy:', isToday);
+  
+  // Generar horarios
   for (let h = startHour; h < endHour; h++) {
     for (let m = 0; m < 60; m += 40) {
       const hour = h.toString().padStart(2, '0');
       const minute = m.toString().padStart(2, '0');
       const timeString = `${hour}:${minute}`;
       
-      // Verificar si la hora ya pasó (solo si es hoy)
-      let isPast = false;
+      let isPastTime = false;
+      
+      // Solo deshabilitar horas pasadas si es HOY
       if (isToday) {
-        // Crear fecha con la hora específica para comparar
-        const hourDate = new Date(year, month - 1, day, h, m, 0, 0);
-        isPast = hourDate <= now; // Usar <= en lugar de < para incluir el minuto actual
+        // Crear fecha/hora específica en Bolivia
+        const hourDateTime = new Date(year, month - 1, day, h, m, 0, 0);
+        // Agregar margen de 5 minutos
+        const nowWithMargin = new Date(nowBolivia.getTime() + 5 * 60000);
+        isPastTime = hourDateTime <= nowWithMargin;
+        
+        if (isPastTime) {
+          console.log(`Hora ${timeString} deshabilitada (ya pasó)`);
+        }
       }
       
       hours.push({
         time: timeString,
-        disabled: isPast
+        disabled: isPastTime
       });
     }
   }
+  
+  console.log('Total horas generadas:', hours.length);
+  console.log('Horas deshabilitadas:', hours.filter(h => h.disabled).length);
+  console.log('==================');
   
   return hours;
 });
 
 const availableServicios = computed(() => {
   if (selectedBarbero.value === null) {
-    // Si no hay barbero seleccionado, mostrar todos los servicios disponibles
     return todosServicios.value;
   }
   
-  // Si hay barbero seleccionado, mostrar solo sus servicios
   const barbero = barberosDisponibles.value.find(b => b.id === selectedBarbero.value);
   if (!barbero) return [];
   
-  // Ya tenemos los servicios completos, no necesitamos hacer filter
   return barbero.servicios;
 });
 
@@ -190,9 +273,11 @@ const pagoInicial = computed(() => {
   return (totalPrecio.value * (props.porcentajeReserva / 100));
 });
 
-
 const canConfirm = computed(() => {
-  return selectedDate.value && selectedHora.value && selectedServicios.value.length > 0;
+  return selectedDate.value && 
+         selectedHora.value && 
+         selectedServicios.value.length > 0 &&
+         isDateAvailable.value;
 });
 
 // Methods
@@ -219,19 +304,14 @@ const cargarBarberosYServicios = async () => {
       hora: selectedHora.value
     });
     
-    // Transformar barberos para agregar avatar generado
     barberosDisponibles.value = response.data.barberos.map(barbero => ({
       ...barbero,
-      // Generar avatar con la primera letra del nombre
       avatar: generateAvatar(barbero.nombre),
-      // Los servicios ya vienen completos desde el backend
-      disponible: true // Ya viene filtrado desde el backend
+      disponible: true
     }));
     
-    // Guardar todos los servicios disponibles
     todosServicios.value = response.data.servicios;
     
-    // Resetear selecciones
     selectedBarbero.value = null;
     selectedServicios.value = [];
     
@@ -245,17 +325,17 @@ const cargarBarberosYServicios = async () => {
   }
 };
 
-/**
- * Genera un avatar con la primera letra del nombre
- * usando un servicio de avatares o creando uno personalizado
- */
 const generateAvatar = (nombre) => {
-  // Opción 1: Usar UI Avatars (servicio externo)
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=random&size=150`;
 };
 
 const confirmarCita = () => {
   if (!canConfirm.value) return;
+  
+  if (!isDateAvailable.value) {
+    alert('La fecha seleccionada ya no está disponible');
+    return;
+  }
   
   const citaData = {
     fecha: selectedDate.value.date,
@@ -267,18 +347,30 @@ const confirmarCita = () => {
     pago_inicial: pagoInicial.value
   };
   
-  console.log('Datos de la cita:', citaData);
-  
   router.post('/cita/store', citaData, {
     preserveScroll: true,
-    onSuccess: () => {
-      alert('¡Cita confirmada exitosamente!');
-    },
+    // onSuccess: () => {
+    // //  alert('¡Cita confirmada exitosamente!');
+    // },
     onError: (errors) => {
       if (errors && errors.error) {
-        alert(errors.error);
+        Swal.fire({
+          title: 'Error',
+          text: errors.error,
+          icon: 'error',
+          confirmButtonColor: '#EF4444',
+          background: 'var(--bg-primary)',
+          color: 'var(--text-primary)'
+        });
       } else {
-        alert('Error al confirmar la cita');
+        Swal.fire({
+          title: 'Error',
+          text: 'Error al confirmar la cita',
+          icon: 'error',
+          confirmButtonColor: '#EF4444',
+          background: 'var(--bg-primary)',
+          color: 'var(--text-primary)'
+        });
       }
     }
   });
@@ -287,6 +379,23 @@ const confirmarCita = () => {
 // Watchers
 watch(selectedDate, (newVal) => {
   if (!newVal) {
+    selectedTurno.value = null;
+    selectedHora.value = null;
+    selectedBarbero.value = null;
+    selectedServicios.value = [];
+    barberosDisponibles.value = [];
+    return;
+  }
+
+  if (!isDateAvailable.value) {
+    selectedTurno.value = null;
+    selectedHora.value = null;
+    selectedBarbero.value = null;
+    selectedServicios.value = [];
+    barberosDisponibles.value = [];
+  }
+  
+  if (selectedTurno.value && !isTurnoAvailable.value(selectedTurno.value)) {
     selectedTurno.value = null;
     selectedHora.value = null;
     selectedBarbero.value = null;
@@ -301,13 +410,16 @@ watch(selectedTurno, (newVal) => {
     selectedBarbero.value = null;
     selectedServicios.value = [];
     barberosDisponibles.value = [];
-  }else {
-    // Si cambia el turno, limpiar la hora seleccionada si está deshabilitada
-    if (selectedHora.value) {
-      const horaObj = availableHours.value.find(h => h.time === selectedHora.value);
-      if (horaObj && horaObj.disabled) {
-        selectedHora.value = null;
-      }
+    return;
+  }
+  
+  if (selectedHora.value) {
+    const horaObj = availableHours.value.find(h => h.time === selectedHora.value);
+    if (!horaObj || horaObj.disabled) {
+      selectedHora.value = null;
+      selectedBarbero.value = null;
+      selectedServicios.value = [];
+      barberosDisponibles.value = [];
     }
   }
 });
@@ -323,7 +435,6 @@ watch(selectedHora, (newVal) => {
 });
 
 watch(selectedBarbero, (newVal, oldVal) => {
-  // Guardar selección del barbero anterior
   if (oldVal !== undefined) {
     const oldKey = oldVal === null ? 'todos' : oldVal;
     if (selectedServicios.value.length > 0) {
@@ -331,8 +442,45 @@ watch(selectedBarbero, (newVal, oldVal) => {
     }
   }
   
-  // Restaurar selección del nuevo barbero
   const newKey = newVal === null ? 'todos' : newVal;
   selectedServicios.value = serviciosPorBarbero.value[newKey] || [];
 });
+
+onMounted(() => {
+  checkFlashMessages();
+});
+
+// Observar cambios (por si Inertia hace un partial reload o redirect back)
+watch(() => page.props.flash, (newFlash) => {
+  console.log('Flash recibido:', newFlash); 
+  checkFlashMessages();
+}, { deep: true });
+
+const checkFlashMessages = () => {
+  const flash = page.props.flash;
+  
+  // // Mensaje de Éxito
+  // if (flash?.success) {
+  //   Swal.fire({
+  //     title: '¡Éxito!',
+  //     text: flash.success,
+  //     icon: 'success',
+  //     confirmButtonColor: 'var(--color-primary)',
+  //     background: 'var(--bg-primary)',
+  //     color: 'var(--text-primary)'
+  //   });
+  // }
+  
+  // Mensaje de Error (Business Logic, ej: "Horario ocupado")
+  if (flash?.error) {
+    Swal.fire({
+      title: 'Error',
+      text: flash.error,
+      icon: 'error',
+      confirmButtonColor: '#EF4444',
+      background: 'var(--bg-primary)',
+      color: 'var(--text-primary)'
+    });
+  }
+};
 </script>

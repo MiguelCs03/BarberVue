@@ -27,7 +27,7 @@ class Cita extends Model
 
     public function tipoPago()
     {
-        return $this->belongsTo(TipoPago::class, 'pago_id');
+        return $this->belongsTo(TipoPago::class, 'tipo_pago_id');
     }
     public function barbero(){
         return $this->belongsTo(Barbero::class, 'barbero_id');

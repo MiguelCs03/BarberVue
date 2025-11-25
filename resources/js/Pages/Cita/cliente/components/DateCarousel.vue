@@ -86,20 +86,32 @@
     return `${months[props.currentWeekStart.getMonth()]} ${props.currentWeekStart.getFullYear()}`;
   });
   
+ 
+
   const visibleDays = computed(() => {
     const days = [];
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    
+    // Obtener fecha actual en Bolivia
+    const nowBolivia = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
+    const today = new Date(nowBolivia.getFullYear(), nowBolivia.getMonth(), nowBolivia.getDate());
     
     for (let i = 0; i < 7; i++) {
       const date = new Date(props.currentWeekStart);
       date.setDate(date.getDate() + i);
       
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const available = date >= today;
+      // Comparar solo la parte de fecha (sin hora)
+      const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const available = dateOnly >= today;
+      
+      // Formatear fecha en formato ISO pero en zona horaria local
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
       
       days.push({
-        date: date.toISOString().split('T')[0],
+        date: dateString,
         dayName: dayNames[date.getDay()],
         dayNumber: date.getDate(),
         fullDate: date,
