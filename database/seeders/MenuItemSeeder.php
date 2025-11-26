@@ -117,11 +117,11 @@ class MenuItemSeeder extends Seeder
             'activo' => true,
         ]);
 
-        // Analytics - Only for barbero
+        // Reports - Only for barbero
         MenuItem::create([
             'nombre' => 'Estadísticas',
             'icono' => 'chart',
-            'ruta' => '/analytics/visits',
+            'ruta' => '/reports',
             'orden' => 5,
             'roles' => 'barbero',
             'activo' => true,

@@ -33,6 +33,8 @@ class DatabaseSeeder extends Seeder
             ProductoSeeder::class,
             MenuItemSeeder::class,
             ServicioBarberoSeeder::class,
+            MovimientoInventarioSeeder::class,
+            CitaSeeder::class,
             
         ]);
     }

@@ -8,6 +8,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\CitaController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -74,6 +75,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/analytics/visits', function () {
             return Inertia::render('Analytics/Visits');
         })->name('analytics.visits');
+
+        // Reports
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     });
 
     // Rutas compartidas (disponibles para barbero y cliente)
