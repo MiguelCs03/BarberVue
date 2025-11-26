@@ -257,4 +257,54 @@ class UserController extends Controller
         return redirect()->route('users.index')
             ->with('success', 'Usuario eliminado exitosamente');
     }
+
+
+
+    public function buscarUsuarioPorUsername(Request $request)
+    {
+
+        $validated = $request->validate([
+            'username' => 'required|string', 
+        ]);
+        
+        $termino = $validated['username'];
+
+        
+        $clientes = Cliente::with('usuario:id,name,email') 
+            ->whereHas('usuario', function ($query) use ($termino) {
+                $query->where('name', 'LIKE', "%{$termino}%");
+            })
+            ->paginate(10); 
+        $clientes->through(function ($cliente) {
+            return [
+                'id' => $cliente->id,  
+                'name' => $cliente->usuario->name ?? 'Sin Nombre', 
+                'email' => $cliente->usuario->email ?? 'Sin Email', 
+            ];
+        });
+        return response()->json($clientes);
+    }
+    public function buscarUsuarioPorEmail(Request $request){
+        $validated = $request->validate([
+            'email' => 'required|string', 
+        ]);
+        
+        $termino = $validated['email'];
+
+        $clientes = Cliente::with('usuario:id,name,email') 
+            ->whereHas('usuario', function ($query) use ($termino) {
+
+                $query->where('email', 'LIKE', "%{$termino}%");
+            })
+            ->paginate(10); // Paginación
+        $clientes->through(function ($cliente) {
+            return [
+                'id' => $cliente->id,  
+                'name' => $cliente->usuario->name ?? 'Sin Nombre', 
+                'email' => $cliente->usuario->email ?? 'Sin Email',
+            ];
+        });
+        return response()->json($clientes);
+
+    }
 }

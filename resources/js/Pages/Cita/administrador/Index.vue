@@ -31,7 +31,7 @@
             />
           </div>
   
-          <Link :href="route('appointments.create')" class="btn-primary whitespace-nowrap">
+          <Link :href="route('citas-admin.create')" class="btn-primary whitespace-nowrap">
             + Nueva Cita
           </Link>
         </div>

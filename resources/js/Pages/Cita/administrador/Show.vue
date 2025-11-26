@@ -30,7 +30,20 @@
               {{ cita.fecha }}
             </p>
           </div>
-  
+          
+          <button 
+           v-if="cita.estado === 'pendiente'"   
+            @click="cancelarCita"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded hover:opacity-75 transition-opacity"
+            :style="{ 
+                backgroundColor: '#EF4444',
+                color: 'white'
+            }"
+            >
+            <XMarkIcon class="w-5 h-5" />
+            <span>Cancelar Cita</span>
+            </button>
+
           <Link :href="route('citas-admin.edit', cita.id)" class="btn-primary whitespace-nowrap">
             <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -210,15 +223,17 @@
   </template>
   
   <script setup>
-  import { Head, Link } from '@inertiajs/vue3';
+  import { Head, Link,router } from '@inertiajs/vue3';
   import AppLayout from '@/Layouts/AppLayout.vue';
   import Card from '@/Components/Card.vue';
   import Badge from '@/Components/Badge.vue';
   import { 
   InformationCircleIcon, 
   ClockIcon, 
-  ScissorsIcon 
+  ScissorsIcon ,
+  XMarkIcon
 } from '@heroicons/vue/24/outline';
+  import Swal from 'sweetalert2';
 
   const props = defineProps({
     cita: {
@@ -245,5 +260,23 @@
       'cancelada': 'Cancelada',
     };
     return labels[status] || status;
+  };
+  const cancelarCita = () => {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "No podrás revertir esta acción",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Sí, cancelar cita',
+      cancelButtonText: 'No, mantener',
+      background: 'var(--bg-primary)',
+      color: 'var(--text-primary)'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        router.post(route('citas.cancelar-cita', props.cita.id));
+      }
+    });
   };
   </script>

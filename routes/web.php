@@ -63,7 +63,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/citas-admin/index',[CitaController::class,'indexAdministrativo'])->name('citas-admin.index');
         Route::get('/citas-admin/{id}/show',[CitaController::class,'showAdministrativo'])->name('citas-admin.show');
         Route::get('/citas-admin/{id}/edit',[CitaController::class,'showAdministrativo'])->name('citas-admin.edit');
-
+        Route::get('/citas-admin/create',[CitaController::class,'createAdmin'])->name('citas-admin.create');
+        Route::post('/cita-admin/store',[CitaController::class, 'storeAdmin'])->name('citas-admin.store');
         // Inventory Management Routes
         Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
         Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
@@ -91,9 +92,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/citas/barberos-disponibles', [CitaController::class, 'getBarberosDisponiblesV2'])
         ->name('barberos-disponibles');
 
+    Route::post('/citas/barberos-disponibles-admin', [CitaController::class, 'getBarberosDisponiblesAdmin'])
+        ->name('barberos-disponibles-admin');
+
     Route::post('/citas/barberos-disponibles-edicion-cliente', [CitaController::class, 'getBarberosDisponiblesParaEdicion'])
-        ->name('barberos-disponibles');
-    
+        ->name('barberos-disponibles-edicion');
+
+    Route::get('/usuarios/busqueda-cliente-username', [UserController::class, 'buscarUsuarioPorUsername'])
+        ->name('usuarios.busqueda-cliente-username');
+    Route::get('/usuarios/busqueda-cliente-email', [UserController::class, 'buscarUsuarioPorEmail'])
+        ->name('usuarios.busqueda-cliente-email');
     
     // Global Search Route
     Route::get('/api/search', [SearchController::class, 'search'])->name('search');
