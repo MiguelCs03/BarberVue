@@ -126,5 +126,15 @@ class MenuItemSeeder extends Seeder
             'roles' => 'barbero',
             'activo' => true,
         ]);
+
+        // Analytics (estadísticas de visitas) - Only for barbero
+        MenuItem::create([
+            'nombre' => 'Estadísticas de Visitas',
+            'icono' => 'chart',
+            'ruta' => '/analytics/visits',
+            'orden' => 6,
+            'roles' => 'barbero',
+            'activo' => true,
+        ]);
     }
 }
