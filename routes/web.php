@@ -33,13 +33,15 @@ Route::middleware('auth')->group(function () {
 
     // Rutas para CLIENTES
     Route::middleware('role:cliente')->group(function () {
-        Route::get('/citas-cliente/create',[CitaController::class,'create'])->name('citas-cliente.create');
+        
         Route::get('/citas-cliente/index',[CitaController::class,'indexCliente'])->name('citas-cliente.index');
         Route::get('/citas-cliente/{id}/show',[CitaController::class,'showCliente'])->name('citas-cliente.show');
+        Route::get('/citas-cliente/{id}/edit',[CitaController::class,'editCliente'])->name('citas-cliente.edit');
+        Route::get('/citas-cliente/create',[CitaController::class,'create'])->name('citas-cliente.create');
         Route::post('/cita/store',[CitaController::class, 'store'])->name('citas-cliente.store');
-        Route::post('/cita/{id}/cancelar',[CitaController::class, 'cancelarCita'])->name('citas.cancelar-cita');
+        Route::put('/cita-cliente/{id}/update',[CitaController::class, 'updateCliente'])->name('citas-cliente.update');
     });
-
+    Route::post('/cita/{id}/cancelar',[CitaController::class, 'cancelarCita'])->name('citas.cancelar-cita');
     // Rutas para BARBEROS/ADMINISTRADORES
     Route::middleware('role:barbero')->group(function () {
         // User Management Routes
@@ -86,8 +88,12 @@ Route::middleware('auth')->group(function () {
     });
 
     // Rutas compartidas (disponibles para barbero y cliente)
-    Route::post('/citas/barberos-disponibles', [CitaController::class, 'getBarberosDisponibles'])
+    Route::post('/citas/barberos-disponibles', [CitaController::class, 'getBarberosDisponiblesV2'])
         ->name('barberos-disponibles');
+
+    Route::post('/citas/barberos-disponibles-edicion-cliente', [CitaController::class, 'getBarberosDisponiblesParaEdicion'])
+        ->name('barberos-disponibles');
+    
     
     // Global Search Route
     Route::get('/api/search', [SearchController::class, 'search'])->name('search');

@@ -85,7 +85,7 @@ class CitaController extends Controller
         ]);
         $usuarioAutenticado = Auth::user();
         $clienteAutenticado = $usuarioAutenticado->cliente;
-        
+        $rolDeUsuario = $usuarioAutenticado->rol;
         $configuracion = Configuracion::where('nombre', 'Porcentaje de Reserva de Citas')
             ->first();
         $tipoPagoQr = TipoPago::where('nombre','QR')->first();
@@ -107,7 +107,7 @@ class CitaController extends Controller
                         ->with('error', 'El barbero seleccionado no está disponible en ese horario.')
                         ->withInput();
                 }
-
+                #podria considerarse no validar esto
                 $citaExistenteConOtroBarbero = Cita::where('cliente_id', $clienteAutenticado->id)
                         ->where('barbero_id','!=',$barberoId)
                         ->where('fecha', $fechaHora)
@@ -119,44 +119,6 @@ class CitaController extends Controller
                         ->withInput();
                 }
             }
-
-            //si barbero_id es nulo
-            if (!$barberoId) {
-                $totalBarberos = Barbero::where('estado_barbero', 'disponible')
-                ->whereHas('servicioBarberos.servicio', function ($query) {
-                    $query->where('estado', 'activo');
-                })->count();
-
-                // $citasPendientesSinBarberoAsignado = Cita::where('fecha', $fechaHora) 
-                // ->whereNull('barbero_id')
-                // ->whereIn('estado', ['pendiente'])
-                // ->count(); 
-            
-                
-                // $citasPendientesDistinct = Cita::where('fecha', $fechaHora) 
-                // ->whereNotNull('barbero_id')
-                // ->whereIn('estado', ['pendiente'])
-                // ->distinct()
-                // ->count('barbero_id');
-                $citasEnFechaHora = Cita::where('fecha', $fechaHora)
-                ->whereIn('estado', ['pendiente']) 
-                ->with('barbero')
-                ->get()
-                ->unique('barbero_id');
-                //$totalCitasPendientes = $citasPendientesSinBarberoAsignado + $citasPendientesDistinct;
-                $totalCitasPendientes = $citasEnFechaHora->count();
-                if (($totalCitasPendientes + 1) > $totalBarberos) {
-                    return redirect()->back()
-                        ->with('error', 'Todos los barberos están ocupados en ese horario.')
-                        ->withInput();
-                        //->withInput();
-                }
-
-                //podriamos assignar a un barbero aleatoriamente disponible
-            }
-
-            
-
             // Crear la cita
             $cita = Cita::create([
                 'cliente_id' => $clienteAutenticado->id,
@@ -177,9 +139,16 @@ class CitaController extends Controller
                 ]);
             }
             DB::commit();
-
-            return redirect()->route('citas-cliente.index')
-            ->with('success', '¡Cita registrada exitosamente! Tu cita ha sido agendada.');
+            if($rolDeUsuario == 'cliente'){
+                // Logica adicional para clientes si es necesario
+                return redirect()->route('citas-cliente.index')
+                ->with('success', '¡Cita registrada exitosamente! Tu cita ha sido agendada.');
+            }else {
+                //barbero o admin actual
+                return redirect()->route('citas-admin.index')
+                ->with('success', '¡Cita registrada exitosamente! Tu cita ha sido agendada.');
+            }
+            
 
         } catch (Exception $e) {
             DB::rollBack();
@@ -203,7 +172,7 @@ class CitaController extends Controller
             'barbero.usuario:id,name',
         ])
         ->select('id', 'barbero_id', 'fecha','estado','pago_inicial')
-        ->orderBy('fecha', 'asc')
+        ->orderBy('fecha', 'desc')
         ->paginate(10);
 
         $citas->getCollection()->transform(function ($cita) {
@@ -284,12 +253,13 @@ class CitaController extends Controller
             ->with('success', 'Cita cancelada exitosamente.')
             ->withInput();
 
-        } catch (Exception $e) {
+        }catch(Exception $e){
+            DB::rollBack();
             Log::error('Error al cancelar cita: ' . $e->getMessage());
-            return redirect()
-            ->back()
-            ->with('error', 'Ocurrió un error al intentar cancelar la cita.')
-            ->withInput();
+            return redirect()->back()
+                ->with('error', 'Ocurrió un error al intentar cancelar la cita.')
+                ->withInput();
+
         }
     }
     /**
@@ -347,15 +317,124 @@ class CitaController extends Controller
      */
     public function edit(string $id)
     {
-        //
+       
+    
     }
+
+    public function editCliente(string $id){
+        
+    
+        $cita = Cita::with([
+            'barbero.usuario',
+            'citaServicios.servicio'
+        ])->findOrFail($id);
+
+        $citaFormateada = [
+            'id' => $cita->id,
+            'fecha' => Carbon::parse($cita->fecha)->format('Y-m-d'),
+            'hora' => Carbon::parse($cita->fecha)->format('H:i'),
+            'barbero' => $cita->barbero ? [
+                'id' => $cita->barbero->id,
+                'nombre' => $cita->barbero->usuario->name ?? 'No asignado',
+            ] : null,
+            //'servicios_ids' => $cita->citaServicios->pluck('servicio_id')->toArray(),
+            'servicios' => $cita->citaServicios->map(function($citaServicio) {
+                return [
+                    'id' => $citaServicio->servicio->id,
+                    'nombre' => $citaServicio->servicio->nombre,
+                    'descripcion' => $citaServicio->servicio->descripcion,
+                    'precio' => (float) $citaServicio->servicio->precio,
+                    'duracion_estimada' => $citaServicio->servicio->duracion_estimada,
+                ];
+            })->toArray(),
+        ];
+
+        return Inertia::render('Cita/cliente/EditCita', [
+            'cita' => $citaFormateada,
+        ]);
+    
+    }
+
+    
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Cita $cita)
+    public function updateCliente(Request $request, $id)
     {
-        //
+        // 1. Validar datos de entrada
+        $validated = $request->validate([
+            'fecha' => 'required|date',
+            'hora' => 'required|date_format:H:i',
+            'barbero_id' => 'required|exists:barberos,id',
+        ]);
+        $usuarioAutenticado = Auth::user();
+        $rolUsuario = $usuarioAutenticado->rol;
+        $clienteAutenticado = $usuarioAutenticado->cliente;
+        // 2. Buscar la cita y verificar propiedad
+        try{
+
+            DB::beginTransaction();
+            $cita = Cita::findOrFail($id);
+    
+            // Seguridad: Verificar que la cita sea del cliente autenticado
+            if ($cita->cliente_id !== $clienteAutenticado->id) {
+                #excepcion
+                return redirect()->back()
+                            ->with('error', 'usuario no autorizado para editar esta cita.')                       
+                            ->withInput();
+            }
+    
+            // Seguridad: Solo permitir editar citas pendientes
+            if ($cita->estado !== 'pendiente') {
+                #excepcion
+                return redirect()->back()
+                            ->with('error', 'Solo se pueden editar citas en estado pendiente.')                       
+                            ->withInput();
+            }
+    
+            $nuevaFechaHora = Carbon::parse("{$validated['fecha']} {$validated['hora']}");
+            // 3. Validar que el barbero esté disponible en el nuevo horario
+            $citaConflicto = Cita::where('fecha', $nuevaFechaHora)
+                ->where('barbero_id', $validated['barbero_id'])
+                ->where('id', '!=', $id) 
+                ->whereIn('estado', ['pendiente']) // Estados que ocupan lugar
+                ->exists();
+    
+            if ($citaConflicto) {
+                return redirect()->back()
+                    ->with('error', 'El barbero seleccionado ya no está disponible en el nuevo horario.')
+                    ->withInput();
+            }
+    
+            $barbero = Barbero::find($validated['barbero_id']);
+            if ($barbero->estado_barbero !== 'disponible') {
+                return redirect()->back()
+                    ->with('error', 'El barbero seleccionado ya no está disponible actualmente.')
+                    ->withInput();
+            }
+    
+            
+            $cita->update([
+                'fecha' => $nuevaFechaHora, 
+                'barbero_id' => $validated['barbero_id'],
+            ]);
+            DB::commit();
+            if($rolUsuario == 'cliente'){
+                return to_route('citas-cliente.show', $cita->id)
+                    ->with('success', 'La cita ha sido actualizada correctamente.');
+            }else{
+                return to_route('citas-admin.show', $cita->id)
+                ->with('success', 'La cita ha sido actualizada correctamente.');
+            }
+        }catch(Exception $e){
+            DB::rollBack();
+            Log::error('Error al actualizar cita: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Ocurrió un error al intentar actualizar la cita.')
+                ->withInput();
+
+        }
     }
 
     /**
@@ -365,7 +444,176 @@ class CitaController extends Controller
     {
         //
     }
-    //metodo para clientes
+
+
+    public function getBarberosDisponiblesV2(Request $request)
+    {   
+        $validated = $request->validate([
+            'fecha' => 'required|date',
+            'hora' => 'required|date_format:H:i',
+        ]);
+        
+        $fechaHoraInicio = Carbon::parse("{$validated['fecha']} {$validated['hora']}");
+        $usuarioAutenticado = Auth::user();
+        $clienteAutenticado = $usuarioAutenticado->cliente;
+        $citasEnFechaHora = Cita::where('fecha', $fechaHoraInicio)
+            ->whereNotNull('barbero_id') 
+            ->whereIn('estado', ['pendiente']) 
+            ->with('barbero')
+            ->get()
+            ->unique('barbero_id');
+        $misCitasEnEsaHora = $citasEnFechaHora->where('cliente_id', $clienteAutenticado->id);
+
+            // 4. Obtener los objetos 'barbero' de mis citas
+        $misBarberos = $misCitasEnEsaHora->pluck('barbero')->unique('id');
+
+        $barberosOcupadosIds = $citasEnFechaHora->pluck('barbero_id')->filter()->unique();
+        
+        $barberosDisponibles = Barbero::where('estado_barbero', 'disponible')
+            ->whereNotIn('id', $barberosOcupadosIds)
+            ->whereHas('servicioBarberos.servicio', function ($query) {
+                $query->where('estado', 'activo');
+            })
+            ->with([
+                'usuario:id,name', 
+                'servicioBarberos.servicio' => function ($query) {
+                    $query->where('estado', 'activo')
+                          ->select('id', 'nombre', 'descripcion', 'precio', 'duracion_estimada');
+                }
+            ])
+            ->get();
+
+        foreach ($misBarberos as $miBarbero) {
+            
+            if ($miBarbero && !$barberosDisponibles->contains('id', $miBarbero->id)) {
+                
+                $miBarbero->load([
+                    'usuario:id,name',
+                    'servicioBarberos.servicio' => function ($query) {
+                        $query->where('estado', 'activo')
+                              ->select('id', 'nombre', 'descripcion', 'precio', 'duracion_estimada');
+                    }
+                ]);
+    
+                $barberosDisponibles->push($miBarbero);
+            }
+        }
+        // Agregar mis barberos a la colección de disponibles
+        $formattedBarberos = $barberosDisponibles->map(function ($barbero) {
+        
+            // Mapeamos los servicios para quitar la estructura pivote y dejarlo limpio
+            $servicios = $barbero->servicioBarberos->map(function ($sb) {
+                return $sb->servicio ? [
+                    'id' => $sb->servicio->id,
+                    'nombre' => $sb->servicio->nombre,
+                    'descripcion' => $sb->servicio->descripcion,
+                    'precio' => (float) $sb->servicio->precio,
+                    'duracion_estimada' => $sb->servicio->duracion_estimada,
+                ] : null;
+            })->filter()->values();
+    
+            return [
+                'id' => $barbero->id,
+                'estado_barbero' => $barbero->estado_barbero,
+                'name' => $barbero->usuario->name ?? 'N/A', // Usar el nombre del usuario relacionado
+                'servicios' => $servicios,
+            ];
+        })->values();
+       
+        return response()->json([
+            'barberos' => $formattedBarberos,
+        ]);
+    }
+    public function getBarberosDisponiblesParaEdicion(Request $request)
+    {   
+        $validated = $request->validate([
+            'fecha' => 'required|date',
+            'hora' => 'required|date_format:H:i',
+            'cita_id' => 'required|exists:citas,id',
+        ]);
+        // dd($validated);
+        // Obtener los servicios de la cita actual
+        $serviciosDeLaCita = CitaServicio::where('cita_id', $validated['cita_id'])
+            ->pluck('servicio_id')
+            ->toArray();
+        Log::info("Servicios de la cita ID {$validated['cita_id']}:", $serviciosDeLaCita);
+        $fechaHoraInicio = Carbon::parse("{$validated['fecha']} {$validated['hora']}");
+        $citaEspecifica = Cita::with('barbero')->findOrFail($validated['cita_id']);
+        $barberoDeCitaEspecifica = $citaEspecifica->barbero;//puede ser null
+        $citasEnFechaHora = Cita::where('fecha', $fechaHoraInicio)
+          #  ->where('id', '!=', $validated['cita_id'])
+          #  ->where('barbero_id', '!=', $barberoDeCitaEspecifica?->id) // Excluir el barbero de la cita específica
+            ->whereNotNull('barbero_id') // Excluir el barbero de la cita específica
+            ->whereIn('estado', ['pendiente']) 
+            ->with('barbero')
+            ->get()
+            ->unique('barbero_id');
+
+        $barberosOcupadosIds = $citasEnFechaHora->pluck('barbero_id')->filter()->unique();
+        #que tengan al menos los servicios de la cita
+        $barberosDisponibles = Barbero::where('estado_barbero', 'disponible')
+                ->whereNotIn('id', $barberosOcupadosIds)
+                ->whereHas('servicioBarberos', function ($query) use ($serviciosDeLaCita) {
+                    $query->whereIn('servicio_id', $serviciosDeLaCita)
+                        ->whereHas('servicio', function ($q) {
+                            $q->where('estado', 'activo');
+                        });
+                })
+                ->with([
+                    'usuario:id,name',
+                    'serviciobarberos'
+                ])
+                ->get(); 
+        #dd($barberosDisponibles->toArray());
+        // Filtrar: Solo barberos que ofrezcan TODOS los servicios de la cita
+        $barberosDisponiblesFiltrado = $barberosDisponibles->filter(function ($barbero) use ($serviciosDeLaCita) {
+            // Obtener los servicios del barbero actual
+            $serviciosDelBarbero = $barbero->servicioBarberos->pluck('servicio_id')->toArray();
+            
+            // Loguear qué tiene este barbero
+            Log::info("Revisando Barbero ID: {$barbero->id} ({$barbero->usuario->name})");
+            Log::info("Servicios del Barbero:", $serviciosDelBarbero);
+        
+            foreach ($serviciosDeLaCita as $servicioId) {
+                // Verificar si existe (OJO: a veces los tipos de datos int vs string fallan)
+                if (!in_array($servicioId, $serviciosDelBarbero)) {
+                    Log::warning("RECHAZADO: Le falta el servicio ID: {$servicioId}");
+                    return false;
+                }
+            }
+        
+            Log::info("ACEPTADO: Tiene todos los servicios.");
+            return true;
+        });
+
+        if ($barberoDeCitaEspecifica) {
+            // Verificamos si NO está en la colección filtrada
+            $yaEstaEnLaLista = $barberosDisponiblesFiltrado->contains('id', $barberoDeCitaEspecifica->id);
+    
+            if (!$yaEstaEnLaLista) {
+                Log::info("Agregando forzosamente al barbero actual ID: {$barberoDeCitaEspecifica->id}");
+                
+                // Importante: Cargar la relación 'usuario' para que no falle el mapeo posterior
+                $barberoDeCitaEspecifica->load('usuario');
+                
+                // Agregarlo a la colección
+                $barberosDisponiblesFiltrado->push($barberoDeCitaEspecifica);
+            }
+        }
+        // Formatear respuesta: solo id y nombre
+        $formattedBarberos = $barberosDisponiblesFiltrado->map(function ($barbero) {
+            return [
+                'id' => $barbero->id,
+                'nombre' => $barbero->usuario->name ?? 'N/A',
+            ];
+        })->values();
+        
+        return response()->json([
+            'barberos' => $formattedBarberos,
+        ]);
+    }
+
+    //metodo para clientes, ya no utilizado
     public function getBarberosDisponibles(Request $request)
     {
         $usuarioAutenticado = Auth::user();

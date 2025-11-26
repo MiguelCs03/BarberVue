@@ -1,5 +1,5 @@
 <template>
-    <Head :title="`Mi Cita #${cita.id}`" />
+    <Head :title="`Mi Cita`" />
   
     <AppLayout>
       <!-- Navegación -->
@@ -18,7 +18,7 @@
           <div class="flex-1">
             <div class="flex items-center gap-3 mb-2">
               <h1 class="text-3xl font-bold" :style="{ color: 'var(--text-primary)' }">
-                Mi Cita #{{ cita.id }}
+                Mi Cita 
               </h1>
               <Badge :variant="getStatusBadgeVariant(cita.estado)">
                 {{ getStatusLabel(cita.estado) }}
@@ -30,7 +30,7 @@
           </div>
          
           <button 
-           v-if="cita.estado !== 'completada' && cita.estado !== 'cancelada'"   
+           v-if="cita.estado === 'pendiente'"   
             @click="cancelarCita"
             class="inline-flex items-center gap-2 px-4 py-2 rounded hover:opacity-75 transition-opacity"
             :style="{ 
@@ -41,6 +41,19 @@
             <XMarkIcon class="w-5 h-5" />
             <span>Cancelar Cita</span>
             </button>
+
+            <Link
+              v-if="cita.estado === 'pendiente'"
+              :href="route('citas-cliente.edit', cita.id)"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded hover:opacity-75 transition-opacity"
+              :style="{ 
+                backgroundColor: 'var(--color-primary)',
+                color: 'white'
+              }"
+            >
+              <PencilSquareIcon class="w-5 h-5" />
+              <span>Editar Cita</span>
+            </Link>
         </div>
       </div>
   
@@ -205,7 +218,8 @@
     ArrowLeftIcon,
     XMarkIcon,
     CalendarDaysIcon,
-    ArrowPathIcon
+    ArrowPathIcon,
+    PencilSquareIcon
   } from '@heroicons/vue/24/outline';
   import Swal from 'sweetalert2';
   

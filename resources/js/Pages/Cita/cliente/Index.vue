@@ -119,24 +119,24 @@
     { key: 'estado', label: 'Estado' },
   ];
   
-  const cancelarCita = (cita) => {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: "No podrás revertir esta acción",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#EF4444',
-      cancelButtonColor: '#6B7280',
-      confirmButtonText: 'Sí, cancelar cita',
-      cancelButtonText: 'No, mantener',
-      background: 'var(--bg-primary)',
-      color: 'var(--text-primary)'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        router.post(route('citas.cancelar-cita', cita.id));
-      }
-    });
-  };
+  // const cancelarCita = (cita) => {
+  //   Swal.fire({
+  //     title: '¿Estás seguro?',
+  //     text: "No podrás revertir esta acción",
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonColor: '#EF4444',
+  //     cancelButtonColor: '#6B7280',
+  //     confirmButtonText: 'Sí, cancelar cita',
+  //     cancelButtonText: 'No, mantener',
+  //     background: 'var(--bg-primary)',
+  //     color: 'var(--text-primary)'
+  //   }).then((result) => {
+  //     if (result.isConfirmed) {
+  //       router.post(route('citas.cancelar-cita', cita.id));
+  //     }
+  //   });
+  // };
 
   const actions = [
     {
@@ -145,13 +145,13 @@
       handler: (cita) => router.visit(route('citas-cliente.show', cita.id)),
       variant: 'primary',
     },
-    {
-      label: 'Cancelar',
-      icon: XCircleIcon,
-      handler: cancelarCita,
-      variant: 'danger',
-      condition: (cita) => cita.estado !== 'completada' && cita.estado !== 'cancelada',
-    },
+    // {
+    //   label: 'Cancelar',
+    //   icon: XCircleIcon,
+    //   handler: cancelarCita,
+    //   variant: 'danger',
+    //   condition: (cita) => cita.estado !== 'completada' && cita.estado !== 'cancelada',
+    // },
   ];
   
   const appointments = computed(() => props.citas.data);
