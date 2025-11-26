@@ -117,6 +117,16 @@ class MenuItemSeeder extends Seeder
             'activo' => true,
         ]);
 
+        // Horarios - Only for barbero
+        MenuItem::create([
+            'nombre' => 'Horarios',
+            'icono' => 'clock',
+            'ruta' => '/horarios',
+            'orden' => 6,
+            'roles' => 'barbero',
+            'activo' => true,
+        ]);
+
         // Reports - Only for barbero
         MenuItem::create([
             'nombre' => 'Estadísticas',
@@ -132,7 +142,7 @@ class MenuItemSeeder extends Seeder
             'nombre' => 'Estadísticas de Visitas',
             'icono' => 'chart',
             'ruta' => '/analytics/visits',
-            'orden' => 6,
+            'orden' => 7,
             'roles' => 'barbero',
             'activo' => true,
         ]);

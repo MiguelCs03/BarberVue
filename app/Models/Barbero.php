@@ -29,5 +29,15 @@ class Barbero extends Model
     public function citas(){
         return $this->hasMany(Cita::class, 'barbero_id');
     }
+
+    public function horarios()
+    {
+        return $this->hasMany(HorarioBarbero::class, 'barbero_id');
+    }
+
+    public function excepciones()
+    {
+        return $this->hasMany(ExcepcionHorario::class, 'barbero_id');
+    }
     
 }
