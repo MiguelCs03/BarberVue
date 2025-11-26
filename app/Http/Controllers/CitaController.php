@@ -6,6 +6,8 @@ use App\Models\Barbero;
 use App\Models\Cita;
 use App\Models\CitaServicio;
 use App\Models\Configuracion;
+use App\Models\ExcepcionHorario;
+use App\Models\HorarioBarbero;
 use App\Models\Servicio;
 use App\Models\TipoPago;
 use App\Models\User;
@@ -99,6 +101,13 @@ class CitaController extends Controller
             // Verificar que el barbero esté disponible en esa fecha/hora
             $barberoId = $validated['barbero_id'];
             if($barberoId){
+                // Validar que el barbero esté disponible según su horario
+                if (!$this->esBarberoDisponibleEnHorario($barberoId, $fechaHora)) {
+                    return redirect()->back()
+                        ->with('error', 'El barbero seleccionado no está disponible en ese horario.')
+                        ->withInput();
+                }
+
                 $citaExistenteConOtroBarbero = Cita::where('cliente_id', $clienteAutenticado->id)
                         ->where('barbero_id','!=',$barberoId)
                         ->where('fecha', $fechaHora)
@@ -410,7 +419,11 @@ class CitaController extends Controller
                           ->select('id', 'nombre', 'precio', 'duracion_estimada');
                 }
             ])
-            ->get();
+            ->get()
+            ->filter(function ($barbero) use ($fechaHoraInicio) {
+                // Filtrar por disponibilidad de horario
+                return $this->esBarberoDisponibleEnHorario($barbero->id, $fechaHoraInicio);
+            });
         }else{
         
             $totalBarberos = Barbero::where('estado_barbero', 'disponible')
@@ -440,7 +453,11 @@ class CitaController extends Controller
                             ->select('id', 'nombre', 'precio', 'duracion_estimada');
                     }
                 ])
-                ->get();
+                ->get()
+                ->filter(function ($barbero) use ($fechaHoraInicio) {
+                    // Filtrar por disponibilidad de horario
+                    return $this->esBarberoDisponibleEnHorario($barbero->id, $fechaHoraInicio);
+                });
             }
             
             #para agregar los barberos a la caja
@@ -505,5 +522,55 @@ class CitaController extends Controller
             ]
         );
         
+    }
+
+    /**
+     * Verifica si un barbero está disponible en una fecha y hora específica
+     * según sus horarios regulares y excepciones
+     */
+    private function esBarberoDisponibleEnHorario($barberoId, Carbon $fechaHora)
+    {
+        // Si el barbero no tiene horarios definidos, asumimos disponibilidad 24/7 (backward compatibility)
+        $tieneHorarios = HorarioBarbero::where('barbero_id', $barberoId)->exists();
+        
+        if (!$tieneHorarios) {
+            return true; // Sin horarios = disponible siempre
+        }
+
+        $fecha = $fechaHora->format('Y-m-d');
+        $hora = $fechaHora->format('H:i:s');
+        $diaSemana = $fechaHora->dayOfWeekIso; // 1=Lunes, 7=Domingo
+
+        // Primero verificar si hay una excepción para esta fecha específica
+        $excepcion = ExcepcionHorario::where('barbero_id', $barberoId)
+            ->where('fecha', $fecha)
+            ->first();
+
+        if ($excepcion) {
+            // Si no está disponible en la excepción, retornar false
+            if (!$excepcion->es_disponible) {
+                return false;
+            }
+            
+            // Si está disponible con horario especial, verificar el horario
+            if ($excepcion->hora_inicio && $excepcion->hora_fin) {
+                return $hora >= $excepcion->hora_inicio && $hora <= $excepcion->hora_fin;
+            }
+            
+            // Si está disponible sin horario especial, retornar true
+            return true;
+        }
+
+        // Si no hay excepción, verificar el horario regular del día de la semana
+        $horarioRegular = HorarioBarbero::where('barbero_id', $barberoId)
+            ->where('dia_semana', (string)$diaSemana)
+            ->first();
+
+        if (!$horarioRegular) {
+            return false; // No trabaja este día de la semana
+        }
+
+        // Verificar si la hora está dentro del rango del horario
+        return $hora >= $horarioRegular->hora_inicio && $hora <= $horarioRegular->hora_fin;
     }
 }

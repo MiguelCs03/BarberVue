@@ -78,6 +78,11 @@ Route::middleware('auth')->group(function () {
 
         // Reports
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+        // Horarios Management Routes
+        Route::resource('horarios', \App\Http\Controllers\HorarioBarberoController::class);
+        Route::post('/horarios/excepciones', [\App\Http\Controllers\HorarioBarberoController::class, 'storeExcepcion'])->name('horarios.excepciones.store');
+        Route::delete('/horarios/excepciones/{id}', [\App\Http\Controllers\HorarioBarberoController::class, 'destroyExcepcion'])->name('horarios.excepciones.destroy');
     });
 
     // Rutas compartidas (disponibles para barbero y cliente)
