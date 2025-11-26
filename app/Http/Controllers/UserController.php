@@ -43,7 +43,13 @@ class UserController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Users/Create');
+        $servicios = \App\Models\Servicio::where('estado', 'activo')
+            ->select('id', 'nombre', 'descripcion', 'precio')
+            ->get();
+
+        return Inertia::render('Users/Create', [
+            'servicios' => $servicios,
+        ]);
     }
 
     /**
@@ -57,6 +63,8 @@ class UserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'rol' => ['required', Rule::in(['barbero', 'cliente'])],
             'estado_barbero' => 'nullable|in:disponible,ocupado,descanso',
+            'servicios' => 'nullable|array',
+            'servicios.*' => 'exists:servicios,id',
         ]);
 
         // Create user
@@ -69,10 +77,20 @@ class UserController extends Controller
 
         // Create role-specific record
         if ($validated['rol'] === 'barbero') {
-            Barbero::create([
+            $barbero = Barbero::create([
                 'usuario_id' => $user->id,
                 'estado_barbero' => $validated['estado_barbero'] ?? 'disponible',
             ]);
+
+            // Asociar servicios al barbero
+            if (!empty($validated['servicios'])) {
+                foreach ($validated['servicios'] as $servicioId) {
+                    \App\Models\ServicioBarbero::create([
+                        'barbero_id' => $barbero->id,
+                        'servicio_id' => $servicioId,
+                    ]);
+                }
+            }
         } else {
             Cliente::create([
                 'usuario_id' => $user->id,
@@ -111,7 +129,16 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        $user = User::with(['barbero', 'cliente'])->findOrFail($id);
+        $user = User::with(['barbero.servicioBarberos', 'cliente'])->findOrFail($id);
+
+        $servicios = \App\Models\Servicio::where('estado', 'activo')
+            ->select('id', 'nombre', 'descripcion', 'precio')
+            ->get();
+
+        $serviciosSeleccionados = [];
+        if ($user->rol === 'barbero' && $user->barbero) {
+            $serviciosSeleccionados = $user->barbero->servicioBarberos->pluck('servicio_id')->toArray();
+        }
 
         $userData = [
             'id' => $user->id,
@@ -121,10 +148,12 @@ class UserController extends Controller
             'estado_barbero' => $user->rol === 'barbero' && $user->barbero 
                 ? $user->barbero->estado_barbero 
                 : 'disponible',
+            'servicios' => $serviciosSeleccionados,
         ];
 
         return Inertia::render('Users/Edit', [
             'user' => $userData,
+            'servicios' => $servicios,
         ]);
     }
 
@@ -141,6 +170,8 @@ class UserController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'rol' => ['required', Rule::in(['barbero', 'cliente'])],
             'estado_barbero' => 'nullable|in:disponible,ocupado,descanso',
+            'servicios' => 'nullable|array',
+            'servicios.*' => 'exists:servicios,id',
         ]);
 
         // Update user
@@ -169,11 +200,26 @@ class UserController extends Controller
                 $user->barbero->update([
                     'estado_barbero' => $validated['estado_barbero'] ?? 'disponible',
                 ]);
+                $barbero = $user->barbero;
             } else {
-                Barbero::create([
+                $barbero = Barbero::create([
                     'usuario_id' => $user->id,
                     'estado_barbero' => $validated['estado_barbero'] ?? 'disponible',
                 ]);
+            }
+
+            // Actualizar servicios del barbero
+            // Primero eliminar los servicios actuales
+            \App\Models\ServicioBarbero::where('barbero_id', $barbero->id)->delete();
+            
+            // Luego agregar los nuevos servicios
+            if (!empty($validated['servicios'])) {
+                foreach ($validated['servicios'] as $servicioId) {
+                    \App\Models\ServicioBarbero::create([
+                        'barbero_id' => $barbero->id,
+                        'servicio_id' => $servicioId,
+                    ]);
+                }
             }
         } else {
             // Delete barbero record if exists

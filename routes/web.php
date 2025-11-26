@@ -30,54 +30,58 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // User Management Routes
-    Route::resource('users', UserController::class);
-    
-    // Product Management Routes
-    Route::resource('products', ProductController::class);
-    
-    // Service Management Routes
-    //Route::resource('services', ServiceController::class);
+    // Rutas para CLIENTES
+    Route::middleware('role:cliente')->group(function () {
+        Route::get('/citas-cliente/create',[CitaController::class,'create'])->name('citas-cliente.create');
+        Route::get('/citas-cliente/index',[CitaController::class,'indexCliente'])->name('citas-cliente.index');
+        Route::get('/citas-cliente/{id}/show',[CitaController::class,'showCliente'])->name('citas-cliente.show');
+        Route::post('/cita/store',[CitaController::class, 'store'])->name('citas-cliente.store');
+        Route::post('/cita/{id}/cancelar',[CitaController::class, 'cancelarCita'])->name('citas.cancelar-cita');
+    });
 
-    Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
-    Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
-    Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
-    Route::get('/services/{id}', [ServiceController::class, 'show'])->name('services.show');
-    Route::get('/services/{id}/edit', [ServiceController::class, 'edit'])->name('services.edit');
-    Route::put('/services/{id}', [ServiceController::class, 'update'])->name('services.update');
-    Route::delete('/services/{id}', [ServiceController::class, 'destroy'])->name('services.destroy');
+    // Rutas para BARBEROS/ADMINISTRADORES
+    Route::middleware('role:barbero')->group(function () {
+        // User Management Routes
+        Route::resource('users', UserController::class);
+        
+        // Product Management Routes
+        Route::resource('products', ProductController::class);
+        
+        // Service Management Routes
+        Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+        Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
+        Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
+        Route::get('/services/{id}', [ServiceController::class, 'show'])->name('services.show');
+        Route::get('/services/{id}/edit', [ServiceController::class, 'edit'])->name('services.edit');
+        Route::put('/services/{id}', [ServiceController::class, 'update'])->name('services.update');
+        Route::delete('/services/{id}', [ServiceController::class, 'destroy'])->name('services.destroy');
 
-    //citas para clientes
-    Route::get('/citas-cliente/create',[CitaController::class,'create'])->name('citas-cliente.create');
-    Route::get('/citas-cliente/index',[CitaController::class,'indexCliente'])->name('citas-cliente.index');
-    Route::get('/citas-cliente/{id}/show',[CitaController::class,'showCliente'])->name('citas-cliente.show');
-    Route::post('/cita/store',[CitaController::class, 'store'])->name('citas-cliente.store');
-    Route::post('/cita/{id}/cancelar',[CitaController::class, 'cancelarCita'])->name('citas.cancelar-cita');
-    //citas para administrativos
-    Route::get('/citas-admin/index',[CitaController::class,'indexAdministrativo'])->name('citas-admin.index');
-    Route::get('/citas-admin/{id}/show',[CitaController::class,'showAdministrativo'])->name('citas-admin.show');
-    Route::get('/citas-admin/{id}/edit',[CitaController::class,'showAdministrativo'])->name('citas-admin.edit');
+        // Citas para administrativos
+        Route::get('/citas-admin/index',[CitaController::class,'indexAdministrativo'])->name('citas-admin.index');
+        Route::get('/citas-admin/{id}/show',[CitaController::class,'showAdministrativo'])->name('citas-admin.show');
+        Route::get('/citas-admin/{id}/edit',[CitaController::class,'showAdministrativo'])->name('citas-admin.edit');
 
+        // Inventory Management Routes
+        Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+        Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
+        Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
+        Route::get('/inventory/{id}', [InventoryController::class, 'show'])->name('inventory.show');
+        
+        // Appointment Management Routes
+        Route::resource('appointments', AppointmentController::class);
+        
+        // Analytics Route
+        Route::get('/analytics/visits', function () {
+            return Inertia::render('Analytics/Visits');
+        })->name('analytics.visits');
+    });
+
+    // Rutas compartidas (disponibles para barbero y cliente)
     Route::post('/citas/barberos-disponibles', [CitaController::class, 'getBarberosDisponibles'])
-        ->name('barberos-disponibles');    ///api.citas.barberos-disponibles, para acceder desde vue
-    
-
-    // Inventory Management Routes
-    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
-    Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
-    Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
-    Route::get('/inventory/{id}', [InventoryController::class, 'show'])->name('inventory.show');
-    
-    // Appointment Management Routes
-    Route::resource('appointments', AppointmentController::class);
+        ->name('barberos-disponibles');
     
     // Global Search Route
     Route::get('/api/search', [SearchController::class, 'search'])->name('search');
-    
-    // Analytics Route
-    Route::get('/analytics/visits', function () {
-        return Inertia::render('Analytics/Visits');
-    })->name('analytics.visits');
     
     // Theme Test Route
     Route::get('/theme-test', function () {

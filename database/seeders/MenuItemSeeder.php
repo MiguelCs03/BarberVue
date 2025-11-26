@@ -75,13 +75,45 @@ class MenuItemSeeder extends Seeder
             'activo' => true,
         ]);
 
-        // Appointments - Visible for all roles (barbero and cliente)
+        // Appointments - For barbero (admin)
         MenuItem::create([
             'nombre' => 'Citas',
             'icono' => 'calendar',
-            'ruta' => '/appointments',
+            'ruta' => '/citas-admin/index',
             'orden' => 4,
-            'roles' => null, // Both barbero and cliente can see appointments
+            'roles' => 'barbero',
+            'activo' => true,
+        ]);
+
+        // Appointments - For cliente with submenu
+        $citasClienteHeader = MenuItem::create([
+            'nombre' => 'Citas',
+            'icono' => 'calendar',
+            'ruta' => '#',
+            'orden' => 4,
+            'roles' => 'cliente',
+            'activo' => true,
+        ]);
+
+        // Create appointment - Child of Citas for cliente
+        MenuItem::create([
+            'nombre' => 'Crear Cita',
+            'icono' => 'plus',
+            'ruta' => '/citas-cliente/create',
+            'orden' => 1,
+            'parent_id' => $citasClienteHeader->id,
+            'roles' => 'cliente',
+            'activo' => true,
+        ]);
+
+        // List appointments - Child of Citas for cliente
+        MenuItem::create([
+            'nombre' => 'Mis Citas',
+            'icono' => 'list',
+            'ruta' => '/citas-cliente/index',
+            'orden' => 2,
+            'parent_id' => $citasClienteHeader->id,
+            'roles' => 'cliente',
             'activo' => true,
         ]);
 

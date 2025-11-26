@@ -117,6 +117,42 @@
           </select>
         </div>
 
+        <!-- Servicios (only if barbero) -->
+        <div v-if="form.rol === 'barbero'">
+          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
+            Servicios que ofrece *
+          </label>
+          <p class="text-xs mb-3" :style="{ color: 'var(--text-secondary)' }">
+            Selecciona los servicios que este barbero puede realizar
+          </p>
+          
+          <div class="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto p-3 rounded-lg" :style="{ backgroundColor: 'var(--bg-secondary)' }">
+            <label
+              v-for="servicio in servicios"
+              :key="servicio.id"
+              class="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all hover:opacity-80"
+              :style="{ 
+                backgroundColor: form.servicios.includes(servicio.id) ? 'var(--color-primary)' : 'var(--bg-primary)',
+                color: form.servicios.includes(servicio.id) ? 'white' : 'var(--text-primary)'
+              }"
+            >
+              <input
+                type="checkbox"
+                :value="servicio.id"
+                v-model="form.servicios"
+                class="mt-1 w-4 h-4 rounded"
+                :style="{ accentColor: 'var(--color-primary)' }"
+              />
+              <div class="flex-1">
+                <p class="font-semibold">{{ servicio.nombre }}</p>
+                <p class="text-xs opacity-75">{{ servicio.descripcion }}</p>
+                <p class="text-sm mt-1">Bs. {{ servicio.precio }}</p>
+              </div>
+            </label>
+          </div>
+          <p v-if="form.errors.servicios" class="mt-1 text-sm text-red-600">{{ form.errors.servicios }}</p>
+        </div>
+
         <!-- Actions -->
         <div class="flex gap-3 pt-4">
           <button
@@ -143,6 +179,13 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 
+const props = defineProps({
+  servicios: {
+    type: Array,
+    default: () => []
+  }
+});
+
 const form = useForm({
   name: '',
   email: '',
@@ -150,6 +193,7 @@ const form = useForm({
   password_confirmation: '',
   rol: '',
   estado_barbero: 'disponible',
+  servicios: [],
 });
 
 const handleSubmit = () => {
