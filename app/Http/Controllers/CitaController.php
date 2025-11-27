@@ -482,6 +482,47 @@ class CitaController extends Controller
     
     }
 
+
+
+    public function editAdmin(string $id){
+        
+    
+        $cita = Cita::with([
+            'barbero.usuario',
+            'cliente.usuario',
+            'citaServicios.servicio'
+        ])->findOrFail($id);
+
+        $citaFormateada = [
+            'id' => $cita->id,
+            'fecha' => Carbon::parse($cita->fecha)->format('Y-m-d'),
+            'hora' => Carbon::parse($cita->fecha)->format('H:i'),
+            'estado' => $cita->estado,
+            'barbero' => $cita->barbero ? [
+                'id' => $cita->barbero->id,
+                'nombre' => $cita->barbero->usuario->name ?? 'No asignado',
+            ] : null,
+            'cliente' => $cita->cliente ? [
+                'id' => $cita->cliente->id,
+                'nombre' => $cita->cliente->usuario->name ?? 'No asignado',
+            ] : null,
+            //'servicios_ids' => $cita->citaServicios->pluck('servicio_id')->toArray(),
+            'servicios' => $cita->citaServicios->map(function($citaServicio) {
+                return [
+                    'id' => $citaServicio->servicio->id,
+                    'nombre' => $citaServicio->servicio->nombre,
+                    'descripcion' => $citaServicio->servicio->descripcion,
+                    'precio' => (float) $citaServicio->servicio->precio,
+                    'duracion_estimada' => $citaServicio->servicio->duracion_estimada,
+                ];
+            })->toArray(),
+        ];
+
+        return Inertia::render('Cita/administrador/EditarCita', [
+            'cita' => $citaFormateada,
+        ]);
+    
+    }
     
 
     /**
@@ -564,6 +605,81 @@ class CitaController extends Controller
         }
     }
 
+
+    public function updateAdmin(Request $request, $id)
+    {
+        // 1. Validar datos de entrada
+        $validated = $request->validate([
+            'fecha' => 'required|date',
+            'hora' => 'required|date_format:H:i',
+            'barbero_id' => 'required|exists:barberos,id',
+            'cliente_id' => 'required|exists:clientes,id',
+            'estado' => 'required|in:pendiente,cancelada,completada,cancelada',
+        ]);
+
+
+        try {
+            DB::beginTransaction();
+
+            $cita = Cita::findOrFail($id);
+
+
+            $nuevaFechaHora = Carbon::parse("{$validated['fecha']} {$validated['hora']}");
+
+            // 3. Validar que el barbero esté disponible en el nuevo horario
+            // Solo si se está cambiando fecha, hora o barbero
+            $cambioHorarioOBarbero = (
+                $cita->fecha != $nuevaFechaHora ||
+                $cita->barbero_id != $validated['barbero_id']
+            );
+
+            if ($cambioHorarioOBarbero) {
+                $citaConflicto = Cita::where('fecha', $nuevaFechaHora)
+                    ->where('barbero_id', $validated['barbero_id'])
+                    ->where('id', '!=', $id)
+                    ->whereIn('estado', ['pendiente', 'confirmada']) // Estados que ocupan lugar
+                    ->exists();
+
+                if ($citaConflicto) {
+                    return redirect()->back()
+                        ->with('error', 'El barbero seleccionado ya tiene una cita en ese horario.')
+                        ->withInput();
+                }
+
+                $barbero = Barbero::find($validated['barbero_id']);
+                if ($barbero->estado_barbero !== 'disponible') {
+                    return redirect()->back()
+                        ->with('error', 'El barbero seleccionado no está disponible actualmente.')
+                        ->withInput();
+                }
+            }
+
+            // Actualizar la cita
+            $cita->update([
+                'fecha' => $nuevaFechaHora,
+                'barbero_id' => $validated['barbero_id'],
+                'cliente_id' => $validated['cliente_id'],
+                'estado' => $validated['estado'],
+            ]);
+
+            DB::commit();
+
+            return to_route('citas-admin.show', $cita->id)
+                ->with('success', 'La cita ha sido actualizada correctamente.');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            
+            Log::error('Error al actualizar cita desde admin: ' . $e->getMessage(), [
+                'cita_id' => $id,
+                'data' => $validated
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Ocurrió un error al intentar actualizar la cita.')
+                ->withInput();
+        }
+    }
    
     /**
      * Remove the specified resource from storage.

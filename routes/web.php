@@ -62,9 +62,12 @@ Route::middleware('auth')->group(function () {
         // Citas para administrativos
         Route::get('/citas-admin/index',[CitaController::class,'indexAdministrativo'])->name('citas-admin.index');
         Route::get('/citas-admin/{id}/show',[CitaController::class,'showAdministrativo'])->name('citas-admin.show');
-        Route::get('/citas-admin/{id}/edit',[CitaController::class,'showAdministrativo'])->name('citas-admin.edit');
+        // Route::get('/citas-admin/{id}/edit',[CitaController::class,'showAdministrativo'])->name('citas-admin.edit');
+        Route::get('/citas-admin/{id}/edit',[CitaController::class,'editAdmin'])->name('citas-admin.edit');
         Route::get('/citas-admin/create',[CitaController::class,'createAdmin'])->name('citas-admin.create');
         Route::post('/cita-admin/store',[CitaController::class, 'storeAdmin'])->name('citas-admin.store');
+    
+        Route::put('/cita-admin/{id}/update', [CitaController::class, 'updateAdmin'])->name('citas-admin.update');
         // Inventory Management Routes
         Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
         Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
