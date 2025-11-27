@@ -92,7 +92,8 @@
   import BarberoSelector from './components/BarberoSelector.vue';
   import ServiciosList from './components/ServiciosList.vue';
   import CitaResumen from './components/CitaResumen.vue';
-  
+  import Swal from 'sweetalert2';
+
   const props = defineProps({
     porcentajeReserva: {
       type: Number,
@@ -285,10 +286,29 @@
     //     alert('¡Cita confirmada exitosamente!');
     //   },
       onError: (errors) => {
+        console.log(errors);
         if (errors && errors.error) {
           alert(errors.error);
+          Swal.fire({
+          title: 'Error',
+          text: errors.error || 'Error al confirmar la cita',
+          icon: 'error',
+          confirmButtonColor: '#EF4444',
+          background: 'var(--bg-primary)',
+          color: 'var(--text-primary)'
+        });
+          
         } else {
-          alert('Error al confirmar la cita');
+          //console.log(errors);
+          //alert('Error al confirmar la cita');
+          Swal.fire({
+            title: 'Error',
+            text: errors.error || 'Error al confirmar la cita',
+            icon: 'error',
+            confirmButtonColor: '#EF4444',
+            background: 'var(--bg-primary)',
+            color: 'var(--text-primary)'
+          });
         }
       }
     });

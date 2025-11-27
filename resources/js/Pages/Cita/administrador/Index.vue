@@ -129,24 +129,24 @@ const columns = [
   { key: 'estado', label: 'Estado' },
 ];
 
-const cancelarCita = (cita) => {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: "No podrás revertir esta acción",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#EF4444',
-      cancelButtonColor: '#6B7280',
-      confirmButtonText: 'Sí, cancelar cita',
-      cancelButtonText: 'No, mantener',
-      background: 'var(--bg-primary)',
-      color: 'var(--text-primary)'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        router.post(route('citas.cancelar-cita', cita.id));
-      }
-    });
-  };
+// const cancelarCita = (cita) => {
+//     Swal.fire({
+//       title: '¿Estás seguro?',
+//       text: "No podrás revertir esta acción",
+//       icon: 'warning',
+//       showCancelButton: true,
+//       confirmButtonColor: '#EF4444',
+//       cancelButtonColor: '#6B7280',
+//       confirmButtonText: 'Sí, cancelar cita',
+//       cancelButtonText: 'No, mantener',
+//       background: 'var(--bg-primary)',
+//       color: 'var(--text-primary)'
+//     }).then((result) => {
+//       if (result.isConfirmed) {
+//         router.post(route('citas.cancelar-cita', cita.id));
+//       }
+//     });
+//   };
 
 
 const actions = [
@@ -155,18 +155,18 @@ const actions = [
     icon:EyeIcon,
     handler: (cita) => router.visit(route('citas-admin.show', cita.id)),    variant: 'primary',
   },
-  {
-    label: 'Editar',
-    icon:PencilIcon,
-    handler: (cita) => router.visit(route('appointments.edit', cita.id)),
-    variant: 'primary',
-  },
-  {
-    label: 'Cancelar',
-    icon:TrashIcon,
-    handler: cancelarCita,
-    variant: 'danger',
-  },
+  // {
+  //   label: 'Editar',
+  //   icon:PencilIcon,
+  //   handler: (cita) => router.visit(route('appointments.edit', cita.id)),
+  //   variant: 'primary',
+  // },
+  // {
+  //   label: 'Cancelar',
+  //   icon:TrashIcon,
+  //   handler: cancelarCita,
+  //   variant: 'danger',
+  // },
 ];
 
 // Usa los datos paginados del backend

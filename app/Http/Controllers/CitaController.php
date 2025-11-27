@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
 class CitaController extends Controller
@@ -278,7 +279,7 @@ class CitaController extends Controller
 
             Log::error('Error al registrar cita desde admin', [
                 'error' => $e->getMessage(),
-                'cliente_id' => $validated['cliente_id'],
+               'cliente_id' => $validated['cliente_id'],
                 'data' => $validated
             ]);
 
@@ -288,6 +289,7 @@ class CitaController extends Controller
         }
     }
 
+    
 
 
 
