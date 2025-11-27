@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,5 +22,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Configurar URL base para subdirectorio
+        if (env('APP_ENV') === 'production') {
+            URL::forceScheme('https');
+            URL::forceRootUrl(env('APP_URL'));
+        }
     }
 }
