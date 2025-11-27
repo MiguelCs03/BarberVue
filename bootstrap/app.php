@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ShareMenuItems::class,
         ]);
 
+        // Excluir webhook de PagoFácil del CSRF protection
+        $middleware->validateCsrfTokens(except: [
+            'api/citas/callback-pagofacil',
+        ]);
+
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
         ]);

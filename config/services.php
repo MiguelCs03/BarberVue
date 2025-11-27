@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'pagofacil' => [
+        'base_url' => env('PAGOFACIL_BASE_URL', 'https://masterqr.pagofacil.com.bo/api/services/v2'),
+        'service_token' => env('PAGOFACIL_SERVICE_TOKEN'),
+        'secret_token' => env('PAGOFACIL_SECRET_TOKEN'),
+        'callback_url' => env('PAGOFACIL_CALLBACK_URL'),
+        'client_code' => env('PAGOFACIL_CLIENT_CODE', '11001'),
+    ],
+
 ];

@@ -8,11 +8,12 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-
+// Webhook de PagoFácil (sin autenticación, sin CSRF)
+Route::post('/citas/callback-pagofacil', [CitaController::class, 'handleCallback'])
+    ->name('api.citas.callback-pagofacil');
 
 Route::prefix('citas')->name('api.citas.')->group(function () {
-    // Listar/consultar (GET)
-    // Route::post('/barberos-disponibles', [CitaController::class, 'getBarberosDisponibles'])
-    //     ->name('barberos-disponibles');    ///api.citas.barberos-disponibles, para acceder desde vue
-    
+    // Verificar estado de pago (requiere autenticación)
+    Route::get('/{id}/verificar-pago', [CitaController::class, 'verificarEstadoPago'])
+        ->name('verificar-pago');
 })->middleware('auth:sanctum');

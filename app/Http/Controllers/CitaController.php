@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PagoFacilService;
+
 use App\Models\Barbero;
 use App\Models\Cita;
 use App\Models\CitaServicio;
@@ -19,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class CitaController extends Controller
@@ -133,7 +136,28 @@ class CitaController extends Controller
                         ->withInput();
                 }
             }
-            // Crear la cita
+
+            // Generar UUID para la transacción
+            $uuid = (string) Str::uuid();
+
+            // Generar QR con PagoFácil
+            $pagoFacilService = new PagoFacilService();
+            
+            $clientData = [
+                'name' => $usuarioAutenticado->name,
+                'documentId' => '12345678', // Valor por defecto (el cliente no tiene CI en la BD)
+                'phoneNumber' => '70000000', // Valor por defecto (el cliente no tiene teléfono en la BD)
+                'email' => $usuarioAutenticado->email ?? '',
+            ];
+
+            $qrData = $pagoFacilService->generarQr(
+                $uuid,
+                $montoReservaCalculado,
+                $clientData,
+                'Reserva de Cita - BarberVue'
+            );
+
+            // Crear la cita con los datos de PagoFácil
             $cita = Cita::create([
                 'cliente_id' => $clienteAutenticado->id,
                 'barbero_id' => $validated['barbero_id'],
@@ -143,6 +167,9 @@ class CitaController extends Controller
                 'pago_inicial' => $montoReservaCalculado,
                 'porcentaje_cita' => $porcentajeReserva,
                 'tipo_pago_id'=> $tipoPagoQr->id,
+                'transaccion_uuid' => $uuid,
+                'transaccion_id_pagofacil' => $qrData['transactionId'],
+                'qr_image' => $qrData['qrImage'],
             ]);
 
             // Registrar los servicios de la cita
@@ -153,16 +180,16 @@ class CitaController extends Controller
                 ]);
             }
             DB::commit();
-            if($rolDeUsuario == 'cliente'){
-                // Logica adicional para clientes si es necesario
-                return redirect()->route('citas-cliente.index')
-                ->with('success', '¡Cita registrada exitosamente! Tu cita ha sido agendada.');
-            }else {
-                //barbero o admin actual
-                return redirect()->route('citas-admin.index')
-                ->with('success', '¡Cita registrada exitosamente! Tu cita ha sido agendada.');
-            }
-            
+
+            // Renderizar vista de pago con el QR
+            return Inertia::render('Cita/Payment', [
+                'cita' => [
+                    'id' => $cita->id,
+                    'qrImage' => $qrData['qrImage'],
+                    'monto' => $montoReservaCalculado,
+                    'fecha' => $fechaHora->format('d/m/Y H:i'),
+                ],
+            ]);
 
         } catch (Exception $e) {
             DB::rollBack();
@@ -248,7 +275,27 @@ class CitaController extends Controller
                 }
             }
 
-            // Crear la cita
+            // Generar UUID para la transacción
+            $uuid = (string) Str::uuid();
+
+            // Generar QR con PagoFácil
+            $pagoFacilService = new PagoFacilService();
+            
+            $clientData = [
+                'name' => $cliente->usuario->name,
+                'documentId' => '12345678', // Valor por defecto (el cliente no tiene CI en la BD)
+                'phoneNumber' => '70000000', // Valor por defecto (el cliente no tiene teléfono en la BD)
+                'email' => $cliente->usuario->email ?? '',
+            ];
+
+            $qrData = $pagoFacilService->generarQr(
+                $uuid,
+                $montoReservaCalculado,
+                $clientData,
+                'Reserva de Cita - BarberVue'
+            );
+
+            // Crear la cita con los datos de PagoFácil
             $cita = Cita::create([
                 'cliente_id' => $cliente->id, 
                 'barbero_id' => $validated['barbero_id'],
@@ -258,6 +305,9 @@ class CitaController extends Controller
                 'pago_inicial' => $montoReservaCalculado,
                 'porcentaje_cita' => $porcentajeReserva,
                 'tipo_pago_id' => $tipoPagoQr->id,
+                'transaccion_uuid' => $uuid,
+                'transaccion_id_pagofacil' => $qrData['transactionId'],
+                'qr_image' => $qrData['qrImage'],
             ]);
 
             // Registrar los servicios de la cita
@@ -270,9 +320,16 @@ class CitaController extends Controller
 
             DB::commit();
 
-            // Redirigir siempre al panel de administrador
-            return redirect()->route('citas-admin.index')
-                ->with('success', '¡Cita registrada exitosamente! La cita ha sido agendada para ' . $cliente->usuario->name . '.');
+            // Renderizar vista de pago con el QR
+            return Inertia::render('Cita/Payment', [
+                'cita' => [
+                    'id' => $cita->id,
+                    'qrImage' => $qrData['qrImage'],
+                    'monto' => $montoReservaCalculado,
+                    'fecha' => $fechaHora->format('d/m/Y H:i'),
+                    'cliente' => $cliente->usuario->name,
+                ],
+            ]);
 
         } catch (Exception $e) {
             DB::rollBack();
@@ -1119,6 +1176,106 @@ class CitaController extends Controller
         return $hora >= $horarioRegular->hora_inicio && $hora <= $horarioRegular->hora_fin;
     }
 
+    /**
+     * Webhook handler para recibir notificaciones de pago de PagoFácil
+     * Esta ruta debe estar excluida del CSRF protection
+     */
+    public function handleCallback(Request $request)
+    {
+        try {
+            Log::info('Callback de PagoFácil recibido', ['data' => $request->all()]);
 
+            // PagoFácil envía el UUID en el campo PedidoID
+            $pedidoId = $request->input('PedidoID');
+            $estado = $request->input('Estado');
+            
+            if (!$pedidoId) {
+                Log::error('Callback sin PedidoID', ['data' => $request->all()]);
+                return response()->json([
+                    'error' => 1,
+                    'status' => 0,
+                    'message' => 'PedidoID no encontrado',
+                    'values' => false
+                ]);
+            }
+
+            // Buscar la cita por el UUID
+            $cita = Cita::where('transaccion_uuid', $pedidoId)->first();
+
+            if (!$cita) {
+                Log::error('Cita no encontrada para UUID', ['uuid' => $pedidoId]);
+                return response()->json([
+                    'error' => 1,
+                    'status' => 0,
+                    'message' => 'Cita no encontrada',
+                    'values' => false
+                ]);
+            }
+
+            // Verificar que el pago fue exitoso
+            // PagoFácil envía "Pagado" o código numérico según su documentación
+            if ($estado === 'Pagado' || $estado === 'PAGADO' || $estado == 1) {
+                $cita->estado = 'confirmada';
+                $cita->save();
+
+                Log::info('Pago confirmado para cita', [
+                    'cita_id' => $cita->id,
+                    'uuid' => $pedidoId
+                ]);
+
+                return response()->json([
+                    'error' => 0,
+                    'status' => 1,
+                    'message' => 'Pago recibido correctamente',
+                    'values' => true
+                ]);
+            }
+
+            // Si el estado no es "Pagado", registrar pero no confirmar
+            Log::warning('Estado de pago no confirmado', [
+                'estado' => $estado,
+                'cita_id' => $cita->id
+            ]);
+
+            return response()->json([
+                'error' => 0,
+                'status' => 1,
+                'message' => 'Notificación recibida',
+                'values' => true
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Error en callback de PagoFácil', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 1,
+                'status' => 0,
+                'message' => 'Error al procesar callback',
+                'values' => false
+            ]);
+        }
+    }
+
+    /**
+     * Verificar el estado de pago de una cita (para polling desde frontend)
+     */
+    public function verificarEstadoPago(string $id)
+    {
+        try {
+            $cita = Cita::findOrFail($id);
+            
+            return response()->json([
+                'estado' => $cita->estado,
+                'confirmada' => $cita->estado === 'confirmada',
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Cita no encontrada'
+            ], 404);
+        }
+    }
 
 }

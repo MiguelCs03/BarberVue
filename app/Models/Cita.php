@@ -19,7 +19,10 @@ class Cita extends Model
         'porcentaje_cita',
         'barbero_id',
         'cliente_id',
-        'tipo_pago_id'
+        'tipo_pago_id',
+        'transaccion_id_pagofacil',
+        'transaccion_uuid',
+        'qr_image',
     ];
     public function citaServicios(){
         return $this->hasMany(CitaServicio::class, 'cita_id');    
