@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    # 1. Activa el motor de reescritura
+    RewriteEngine On
+
+    # 2. Si la solicitud es para un archivo o directorio que ya existe, no hagas nada
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # 3. Redirige internamente CUALQUIER COSA a la carpeta public/
+    # Esto resuelve el 404 de las rutas.
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
