@@ -232,7 +232,9 @@
     
     try {
         ///citas/barberos-disponibles-admin
-      const response = await axios.post('/citas/barberos-disponibles-admin', {
+        //TODO ajustar ruta par recibir el baseURL
+      //const response = await axios.post('/citas/barberos-disponibles-admin', {
+      const response = await axios.post(route('barberos-disponibles-admin'), {
         cliente_id: selectedCliente.value ? selectedCliente.value.id : null,
         fecha: selectedDate.value.date,
         hora: selectedHora.value

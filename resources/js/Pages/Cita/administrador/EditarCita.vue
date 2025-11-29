@@ -251,7 +251,10 @@
     loadingBarberos.value = true;
     
     try {
-      const response = await axios.post('/citas/barberos-disponibles-edicion-cliente', {
+      //TODO ajustar ruta par recibir el baseURL
+      //const response = await axios.post('/citas/barberos-disponibles-edicion-cliente', {
+        
+      const response = await axios.post(route('barberos-disponibles-edicion'), {
         fecha: selectedDate.value.date,
         hora: selectedHora.value,
         cita_id: props.cita.id

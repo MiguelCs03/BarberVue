@@ -16,9 +16,9 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Dashboard',
             'icono' => 'home',
-            'ruta' => '/dashboard',
+            'ruta' => 'dashboard', // ✅ CORRECTO: Ya usaba el nombre de ruta
             'orden' => 1,
-            'roles' => null, // All roles
+            'roles' => null, 
             'activo' => true,
         ]);
 
@@ -26,7 +26,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Usuarios',
             'icono' => 'users',
-            'ruta' => '/users',
+            'ruta' => 'users.index', // ✅ CORREGIDO: Usamos el nombre de la ruta resource
             'orden' => 2,
             'roles' => 'barbero',
             'activo' => true,
@@ -46,7 +46,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Productos',
             'icono' => 'box',
-            'ruta' => '/products',
+            'ruta' => 'products.index', // ✅ CORREGIDO: Usamos el nombre de la ruta resource
             'orden' => 1,
             'parent_id' => $inventoryHeader->id,
             'roles' => 'barbero',
@@ -57,7 +57,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Servicios',
             'icono' => 'scissors',
-            'ruta' => '/services',
+            'ruta' => 'services.index', // ✅ CORREGIDO: Usamos el nombre de la ruta
             'orden' => 2,
             'parent_id' => $inventoryHeader->id,
             'roles' => 'barbero',
@@ -68,7 +68,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Movimientos',
             'icono' => 'clipboard',
-            'ruta' => '/inventory',
+            'ruta' => 'inventory.index', // ✅ CORREGIDO: Usamos el nombre de la ruta
             'orden' => 3,
             'parent_id' => $inventoryHeader->id,
             'roles' => 'barbero',
@@ -77,9 +77,9 @@ class MenuItemSeeder extends Seeder
 
         // Appointments - For barbero (admin)
         MenuItem::create([
-            'nombre' => 'Citas',
+            'nombre' => 'Citas (Admin)',
             'icono' => 'calendar',
-            'ruta' => '/citas-admin/index',
+            'ruta' => 'citas-admin.index', // ✅ CORREGIDO: Usamos el nombre de la ruta
             'orden' => 4,
             'roles' => 'barbero',
             'activo' => true,
@@ -87,7 +87,7 @@ class MenuItemSeeder extends Seeder
 
         // Appointments - For cliente with submenu
         $citasClienteHeader = MenuItem::create([
-            'nombre' => 'Citas',
+            'nombre' => 'Citas (Cliente)',
             'icono' => 'calendar',
             'ruta' => '#',
             'orden' => 4,
@@ -99,7 +99,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Crear Cita',
             'icono' => 'plus',
-            'ruta' => '/citas-cliente/create',
+            'ruta' => 'citas-cliente.create', // ✅ CORREGIDO: Usamos el nombre de la ruta
             'orden' => 1,
             'parent_id' => $citasClienteHeader->id,
             'roles' => 'cliente',
@@ -110,7 +110,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Mis Citas',
             'icono' => 'list',
-            'ruta' => '/citas-cliente/index',
+            'ruta' => 'citas-cliente.index', // ✅ CORREGIDO: Usamos el nombre de la ruta
             'orden' => 2,
             'parent_id' => $citasClienteHeader->id,
             'roles' => 'cliente',
@@ -121,7 +121,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Horarios',
             'icono' => 'clock',
-            'ruta' => '/horarios',
+            'ruta' => 'horarios.index', // ✅ CORREGIDO: Usamos el nombre de la ruta resource
             'orden' => 6,
             'roles' => 'barbero',
             'activo' => true,
@@ -131,7 +131,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Estadísticas',
             'icono' => 'chart',
-            'ruta' => '/reports',
+            'ruta' => 'reports.index', // ✅ CORREGIDO: Usamos el nombre de la ruta
             'orden' => 5,
             'roles' => 'barbero',
             'activo' => true,
@@ -141,7 +141,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Estadísticas de Visitas',
             'icono' => 'chart',
-            'ruta' => '/analytics/visits',
+            'ruta' => 'analytics.visits', // ✅ CORREGIDO: Usamos el nombre de la ruta
             'orden' => 7,
             'roles' => 'barbero',
             'activo' => true,

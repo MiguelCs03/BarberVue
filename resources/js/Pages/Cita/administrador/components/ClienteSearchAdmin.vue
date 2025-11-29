@@ -236,15 +236,31 @@
   
     loadingSearch.value = true;
     hasSearched.value = true;
-    
+    //TODO ajustar ruta par recibir el baseURL
     try {
-      const endpoint = searchType.value === 'username' 
-        ? '/usuarios/busqueda-cliente-username'
-        : '/usuarios/busqueda-cliente-email';
+      // const endpoint = searchType.value === 'username' 
+      //   ? '/usuarios/busqueda-cliente-username'
+      //   : '/usuarios/busqueda-cliente-email';
+      
+      // const paramName = searchType.value === 'username' ? 'username' : 'email';
+      
+      // const response = await axios.get(endpoint, {
+      //   params: {
+      //     [paramName]: term,
+      //     page: page
+      //   }
+      // });
+      const routeName = searchType.value === 'username' 
+      ? 'usuarios.busqueda-cliente-username'
+      : 'usuarios.busqueda-cliente-email';
+
       
       const paramName = searchType.value === 'username' ? 'username' : 'email';
+
       
-      const response = await axios.get(endpoint, {
+      const endpointUrl = route(routeName);
+
+      const response = await axios.get(endpointUrl, {
         params: {
           [paramName]: term,
           page: page

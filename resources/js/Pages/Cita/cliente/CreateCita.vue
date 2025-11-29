@@ -90,7 +90,9 @@ const props = defineProps({
   porcentajeReserva: {
     type: Number,
     default: 0
-  }
+  },
+  //para la url simple
+ 
 });
 
 // Constantes de zona horaria
@@ -297,13 +299,13 @@ const cargarBarberosYServicios = async () => {
   if (!selectedDate.value || !selectedHora.value) return;
   
   loadingBarberos.value = true;
-  
+  //TODO ajustar ruta par recibir el baseURL
   try {
-    const response = await axios.post('/citas/barberos-disponibles', {
+    //const response = await axios.post('/citas/barberos-disponibles', {
+    const response = await axios.post(route('barberos-disponibles'), {
       fecha: selectedDate.value.date,
       hora: selectedHora.value
     });
-    
     barberosDisponibles.value = response.data.barberos.map(barbero => ({
       ...barbero,
       avatar: generateAvatar(barbero.nombre),

@@ -4,7 +4,7 @@ import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
     // AGREGA ESTA LÍNEA EXACTA:
-    base: '/inf513/grupo14sc/BarberVue/public/build/',
+    //base: '/inf513/grupo14sc/BarberVue/public/build/',
 
     plugins: [
         laravel({

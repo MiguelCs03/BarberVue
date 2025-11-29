@@ -212,9 +212,10 @@ import BarberosSelectorEdit from './components/BarberosSerlectorEdit.vue';
     if (!selectedDate.value || !selectedHora.value) return;
     
     loadingBarberos.value = true;
-    
+    //TODO ajustar ruta par recibir el baseURL
     try {
-      const response = await axios.post('/citas/barberos-disponibles-edicion-cliente', {
+      //const response = await axios.post('/citas/barberos-disponibles-edicion-cliente', {
+      const response = await axios.post(route('barberos-disponibles-edicion'), {
         fecha: selectedDate.value.date,
         hora: selectedHora.value,
         cita_id: props.cita.id

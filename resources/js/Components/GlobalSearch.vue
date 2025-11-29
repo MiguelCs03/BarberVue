@@ -158,7 +158,8 @@ const handleSearch = () => {
   isLoading.value = true;
   searchTimeout = setTimeout(async () => {
     try {
-      const response = await axios.get('/api/search', {
+      //const response = await axios.get('/api/search', {
+      const response = await axios.get(route('search'), {
         params: { q: searchQuery.value }
       });
       searchResults.value = response.data;
