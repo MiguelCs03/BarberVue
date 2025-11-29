@@ -349,7 +349,8 @@ const confirmarCita = () => {
     pago_inicial: pagoInicial.value
   };
   
-  router.post('/cita/store', citaData, {
+  //router.post('/cita/store', citaData, {
+  router.post(route('citas-cliente.store'), citaData, {
     preserveScroll: true,
     preserveState:true,
     // onSuccess: () => {

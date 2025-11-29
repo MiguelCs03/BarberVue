@@ -282,7 +282,7 @@
     
     console.log('Datos de la cita:', citaData);
     
-    router.post('/cita-admin/store', citaData, {
+    router.post(route('citas-admin-store'), citaData, {
       preserveScroll: true,
     //   onSuccess: () => {
     //     alert('¡Cita confirmada exitosamente!');
