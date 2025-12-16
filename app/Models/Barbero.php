@@ -8,9 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class Barbero extends Model
 {
     use HasFactory;
+    protected $table = 'barberos';
+    public $incrementing = false;
+    protected $keyType = 'integer';
+
 
     protected $fillable = [
-        'usuario_id',
+        'id',
         'estado_barbero',
     ];
 
@@ -19,7 +23,7 @@ class Barbero extends Model
      */
     public function usuario()
     {
-        return $this->belongsTo(User::class, 'usuario_id');
+        return $this->belongsTo(User::class, 'id','id');
     }
 
     public function servicioBarberos()

@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
 
         // Create barbero record
         Barbero::create([
-            'usuario_id' => $barberoUser->id,
+            'id' => $barberoUser->id,
             'estado_barbero' => 'disponible',
         ]);
 
@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
 
         // Create cliente record
         Cliente::create([
-            'usuario_id' => $clienteUser->id,
+            'id' => $clienteUser->id,
         ]);
 
         // Update existing admin user to barbero if exists
@@ -47,7 +47,7 @@ class UserSeeder extends Seeder
             // Create barbero record if doesn't exist
             if (!$adminUser->barbero) {
                 Barbero::create([
-                    'usuario_id' => $adminUser->id,
+                    'id' => $adminUser->id,
                     'estado_barbero' => 'disponible',
                 ]);
             }

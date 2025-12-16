@@ -48,7 +48,7 @@ class BarberoSeeder extends Seeder
 
             
             $barbero = Barbero::firstOrCreate(
-                ['usuario_id' => $usuario->id], 
+                ['id' => $usuario->id], 
                 [
                     'estado_barbero' => 'disponible',
                     

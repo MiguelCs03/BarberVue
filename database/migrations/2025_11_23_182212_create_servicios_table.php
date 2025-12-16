@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('precio', 10, 2)->default(0);
             $table->integer('duracion_estimada')->default(40);//40 min por defecto
             $table->string('estado',50)->default('activo');
+            $table->date('deleted_at')->nullable();
             $table->timestamps();
         });
     }

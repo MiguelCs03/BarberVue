@@ -38,4 +38,8 @@ class Cita extends Model
     public function cliente(){
         return $this->belongsTo(Cliente::class, 'cliente_id');
     }
+    public function venta(){
+        return $this->hasOne(Venta::class, 'venta_id');    
+    }
+    
 }

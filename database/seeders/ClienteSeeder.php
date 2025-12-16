@@ -46,7 +46,7 @@ class ClienteSeeder extends Seeder
             }
 
             $cliente = Cliente::firstOrCreate(
-                ['usuario_id' => $usuario->id],
+                ['id' => $usuario->id],
                 
             );
 

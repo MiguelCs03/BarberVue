@@ -9,6 +9,9 @@ class Producto extends Model
 {
     use HasFactory;
 
+    protected $table = 'productos';
+
+
     protected $fillable = [
         'nombre',
         'descripcion',
@@ -37,5 +40,8 @@ class Producto extends Model
     public function isLowStock()
     {
         return $this->stock_actual <= $this->stock_minimo;
+    }
+    public function detalles(){
+        return $this->hasMany(Detalle::class, 'producto_id');    
     }
 }

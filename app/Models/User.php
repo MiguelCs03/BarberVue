@@ -52,7 +52,7 @@ class User extends Authenticatable
      */
     public function barbero()
     {
-        return $this->hasOne(Barbero::class, 'usuario_id');
+        return $this->hasOne(Barbero::class, 'id');
     }
 
     /**
@@ -60,7 +60,7 @@ class User extends Authenticatable
      */
     public function cliente()
     {
-        return $this->hasOne(Cliente::class, 'usuario_id');
+        return $this->hasOne(Cliente::class, 'id');
     }
 
     /**

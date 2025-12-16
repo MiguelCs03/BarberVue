@@ -15,4 +15,7 @@ class TipoPago extends Model
     public function citas(){
         return $this->hasMany(Cita::class, 'tipo_pago_id');    
     }
+    public function detallePagos(){
+        return $this->hasMany(DetallePago::class, 'tipo_pago_id');    
+    }
 }

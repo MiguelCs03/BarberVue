@@ -8,9 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Cliente extends Model
 {
     use HasFactory;
+    protected $table = 'clientes';
+    public $incrementing = false;
+    protected $keyType = 'integer';
 
     protected $fillable = [
-        'usuario_id',
+        'id',
     ];
 
     /**
@@ -18,7 +21,7 @@ class Cliente extends Model
      */
     public function usuario()
     {
-        return $this->belongsTo(User::class, 'usuario_id');
+        return $this->belongsTo(User::class, 'id','id');
     }
     public function citas(){
         return $this->hasMany(Cita::class, 'cliente_id');

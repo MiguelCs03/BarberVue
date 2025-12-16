@@ -15,6 +15,7 @@ return new class extends Migration
             $table->decimal('precio_venta', 10, 2);
             $table->integer('stock_actual')->default(0);
             $table->integer('stock_minimo')->default(0);
+            $table->date('deleted_at')->nullable();
             $table->timestamps();
         });
     }

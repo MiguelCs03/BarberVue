@@ -8,18 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('movimientos_inventario', function (Blueprint $table) {
+        Schema::create('movimiento_inventarios', function (Blueprint $table) {
             $table->id();
             $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
             $table->enum('tipo_movimiento', ['entrada', 'salida', 'ajuste']);
             $table->integer('cantidad');
             $table->string('motivo');
+            $table->date('fecha')->nullable();
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('movimientos_inventario');
+        Schema::dropIfExists('movimiento_inventarios');
     }
 };

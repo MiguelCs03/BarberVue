@@ -31,5 +31,7 @@ class Servicio extends Model
     public function citaServicios(){
         return $this->hasMany(CitaServicio::class, 'servicio_id');    
     }
-    
+    public function detalles(){
+        return $this->hasMany(Detalle::class, 'servicio_id');    
+    }
 }

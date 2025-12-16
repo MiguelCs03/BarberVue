@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Detalle extends Model
+{
+    //
+    protected $table = 'detalles';
+    protected $fillable = [
+        'venta_id',
+        'producto_id',
+        'servicio_id',
+        'cantidad',
+        'precio_unitario',
+        'subtotal',
+    ];
+
+    public function venta()
+    {
+        return $this->belongsTo(Venta::class);
+    }
+
+    public function producto()
+    {
+        return $this->belongsTo(Producto::class);
+    }
+
+    public function servicio()
+    {
+        return $this->belongsTo(Servicio::class);
+    }
+}
