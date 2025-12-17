@@ -42,10 +42,19 @@ Route::middleware('auth')->group(function () {
         Route::put('/cita-cliente/{id}/update',[CitaController::class, 'updateCliente'])->name('citas-cliente.update');
     });
     Route::post('/cita/{id}/cancelar',[CitaController::class, 'cancelarCita'])->name('citas.cancelar-cita');
+
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('/{id}', [UserController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [UserController::class, 'update'])->name('update');
+        Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
+    });
     // Rutas para BARBEROS/ADMINISTRADORES
     Route::middleware('role:barbero')->group(function () {
         // User Management Routes
-        Route::resource('users', UserController::class);
         
         // Product Management Routes
         Route::resource('products', ProductController::class);

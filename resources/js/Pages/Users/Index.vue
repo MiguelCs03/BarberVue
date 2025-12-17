@@ -76,6 +76,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
 import DataTable from '@/Components/DataTable.vue';
+import { EyeIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
 
 // Receive users from backend
 const props = defineProps({
@@ -95,20 +96,26 @@ const columns = [
   { key: 'created_at', label: 'Fecha Registro' },
 ];
 
+
+
+
 // Table actions
 const actions = [
   {
     label: 'Ver',
+    icon:EyeIcon,
     handler: (user) => router.visit(route('users.show', user.id)),
     variant: 'primary',
   },
   {
     label: 'Editar',
+    icon:PencilIcon,
     handler: (user) => router.visit(route('users.edit', user.id)),
     variant: 'primary',
   },
   {
     label: 'Eliminar',
+    icon:TrashIcon,
     handler: (user) => {
       if (confirm(`¿Estás seguro de eliminar a ${user.name}?`)) {
         router.delete(route('users.destroy', user.id), {
@@ -165,6 +172,7 @@ const getEstadoLabel = (estado) => {
     ocupado: 'Ocupado',
     descanso: 'Descanso',
     activo: 'Activo',
+    inactivo: 'Inactivo',
   };
   return labels[estado] || estado;
 };
@@ -175,6 +183,7 @@ const getEstadoBadgeVariant = (estado) => {
     ocupado: 'warning',
     descanso: 'info',
     activo: 'success',
+    inactivo: 'danger',
   };
   return variants[estado] || 'default';
 };

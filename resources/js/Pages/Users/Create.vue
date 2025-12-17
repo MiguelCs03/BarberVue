@@ -2,7 +2,6 @@
   <Head title="Crear Usuario" />
 
   <AppLayout>
-    <!-- Page Header -->
     <div class="mb-6">
       <Link
         :href="route('users.index')"
@@ -14,163 +13,114 @@
         </svg>
         Volver a la lista
       </Link>
-
-      <h1 class="text-3xl font-bold mb-2" :style="{ color: 'var(--text-primary)' }">
-        Crear Nuevo Usuario
-      </h1>
-      <p :style="{ color: 'var(--text-secondary)' }">
-        Completa el formulario para agregar un nuevo usuario al sistema
-      </p>
+      <h1 class="text-3xl font-bold" :style="{ color: 'var(--text-primary)' }">Nuevo Usuario</h1>
+      <p :style="{ color: 'var(--text-secondary)' }">Registra un nuevo miembro del equipo o cliente.</p>
     </div>
 
-    <!-- Form -->
-    <Card>
-      <form @submit.prevent="handleSubmit" class="space-y-6">
-        <!-- Name -->
-        <div>
-          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Nombre Completo *
-          </label>
-          <input
-            v-model="form.name"
-            type="text"
-            required
-            class="input"
-            placeholder="Ej: Juan Pérez"
-          />
-          <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</p>
-        </div>
+    <form @submit.prevent="handleSubmit">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 space-y-6">
+          <Card>
+            <div class="flex items-center gap-2 mb-6 border-b pb-4 dark:border-gray-700">
+              <svg class="w-5 h-5" :style="{ color: 'var(--color-primary)' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <h2 class="text-xl font-bold" :style="{ color: 'var(--text-primary)' }">Datos Personales</h2>
+            </div>
 
-        <!-- Email -->
-        <div>
-          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Email *
-          </label>
-          <input
-            v-model="form.email"
-            type="email"
-            required
-            class="input"
-            placeholder="usuario@ejemplo.com"
-          />
-          <p v-if="form.errors.email" class="mt-1 text-sm text-red-600">{{ form.errors.email }}</p>
-        </div>
-
-        <!-- Password -->
-        <div>
-          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Contraseña *
-          </label>
-          <input
-            v-model="form.password"
-            type="password"
-            required
-            class="input"
-            placeholder="Mínimo 8 caracteres"
-          />
-          <p v-if="form.errors.password" class="mt-1 text-sm text-red-600">{{ form.errors.password }}</p>
-        </div>
-
-        <!-- Password Confirmation -->
-        <div>
-          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Confirmar Contraseña *
-          </label>
-          <input
-            v-model="form.password_confirmation"
-            type="password"
-            required
-            class="input"
-            placeholder="Repite la contraseña"
-          />
-        </div>
-
-        <!-- Role -->
-        <div>
-          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Rol *
-          </label>
-          <select
-            v-model="form.rol"
-            required
-            class="input"
-          >
-            <option value="">Seleccionar rol...</option>
-            <option value="barbero">Barbero</option>
-            <option value="cliente">Cliente</option>
-          </select>
-          <p v-if="form.errors.rol" class="mt-1 text-sm text-red-600">{{ form.errors.rol }}</p>
-        </div>
-
-        <!-- Estado Barbero (only if barbero) -->
-        <div v-if="form.rol === 'barbero'">
-          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Estado del Barbero
-          </label>
-          <select
-            v-model="form.estado_barbero"
-            class="input"
-          >
-            <option value="disponible">Disponible</option>
-            <option value="ocupado">Ocupado</option>
-            <option value="descanso">Descanso</option>
-          </select>
-        </div>
-
-        <!-- Servicios (only if barbero) -->
-        <div v-if="form.rol === 'barbero'">
-          <label class="block text-sm font-medium mb-2" :style="{ color: 'var(--text-primary)' }">
-            Servicios que ofrece *
-          </label>
-          <p class="text-xs mb-3" :style="{ color: 'var(--text-secondary)' }">
-            Selecciona los servicios que este barbero puede realizar
-          </p>
-          
-          <div class="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto p-3 rounded-lg" :style="{ backgroundColor: 'var(--bg-secondary)' }">
-            <label
-              v-for="servicio in servicios"
-              :key="servicio.id"
-              class="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all hover:opacity-80"
-              :style="{ 
-                backgroundColor: form.servicios.includes(servicio.id) ? 'var(--color-primary)' : 'var(--bg-primary)',
-                color: form.servicios.includes(servicio.id) ? 'white' : 'var(--text-primary)'
-              }"
-            >
-              <input
-                type="checkbox"
-                :value="servicio.id"
-                v-model="form.servicios"
-                class="mt-1 w-4 h-4 rounded"
-                :style="{ accentColor: 'var(--color-primary)' }"
-              />
-              <div class="flex-1">
-                <p class="font-semibold">{{ servicio.nombre }}</p>
-                <p class="text-xs opacity-75">{{ servicio.descripcion }}</p>
-                <p class="text-sm mt-1">Bs. {{ servicio.precio }}</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-1">
+                <label class="text-sm font-semibold uppercase tracking-wider text-gray-500">Nombre *</label>
+                <input v-model="form.name" type="text" required class="input w-full" placeholder="Juan" />
               </div>
-            </label>
-          </div>
-          <p v-if="form.errors.servicios" class="mt-1 text-sm text-red-600">{{ form.errors.servicios }}</p>
+              <div class="space-y-1">
+                <label class="text-sm font-semibold uppercase tracking-wider text-gray-500">Apellido</label>
+                <input v-model="form.apellido" type="text" class="input w-full" placeholder="Pérez" />
+              </div>
+              <div class="space-y-1 md:col-span-2">
+                <label class="text-sm font-semibold uppercase tracking-wider text-gray-500">Correo Electrónico *</label>
+                <input v-model="form.email" type="email" required class="input w-full" placeholder="ejemplo@barberia.com" />
+              </div>
+              <div class="space-y-1">
+                <label class="text-sm font-semibold uppercase tracking-wider text-gray-500">Teléfono</label>
+                <input v-model="form.telefono" type="text" class="input w-full" placeholder="+591 ..." />
+              </div>
+            </div>
+          </Card>
+
+          <Card v-if="form.rol === 'barbero'">
+            <div class="flex items-center justify-between mb-6 border-b pb-4 dark:border-gray-700">
+              <h2 class="text-xl font-bold" :style="{ color: 'var(--text-primary)' }">Servicios Asignados</h2>
+              <span class="text-xs font-bold px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 uppercase tracking-tighter">
+                {{ form.servicios.length }} Seleccionados
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              <div 
+                v-for="servicio in servicios" :key="servicio.id"
+                @click="toggleServicio(servicio.id)"
+                :class="[
+                  'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 group',
+                  form.servicios.includes(servicio.id) 
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/[0.08]' 
+                    : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/50'
+                ]"
+              >
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="font-bold text-sm" :class="form.servicios.includes(servicio.id) ? 'text-[var(--color-primary)]' : 'text-[var(--text-primary)]'">
+                      {{ servicio.nombre }}
+                    </p>
+                    <p class="mt-2 font-bold text-sm">Bs. {{ servicio.precio }}</p>
+                  </div>
+                  <div 
+                    class="w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
+                    :class="form.servicios.includes(servicio.id) ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'border-gray-300 dark:border-gray-600'"
+                  >
+                    <svg v-if="form.servicios.includes(servicio.id)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
 
-        <!-- Actions -->
-        <div class="flex gap-3 pt-4">
-          <button
-            type="submit"
-            class="btn-primary"
+        <div class="space-y-6">
+          <Card>
+            <h3 class="font-bold mb-4 uppercase text-xs text-gray-400">Acceso</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="text-xs font-bold mb-1 block">Rol del Usuario *</label>
+                <select v-model="form.rol" required class="input w-full">
+                  <option value="" disabled>Seleccione un rol</option>
+                  <option value="barbero">Barbero</option>
+                  <option value="cliente">Cliente</option>
+                  <option value="administrador">Administrador</option>
+                </select>
+              </div>
+              <div class="pt-4 border-t dark:border-gray-700">
+                <label class="text-xs font-bold mb-1 block">Contraseña *</label>
+                <input v-model="form.password" type="password" required class="input w-full mb-3" />
+                <label class="text-xs font-bold mb-1 block">Confirmar Contraseña *</label>
+                <input v-model="form.password_confirmation" type="password" required class="input w-full" />
+              </div>
+            </div>
+          </Card>
+
+          <button 
+            type="submit" 
+            class="btn-primary w-full py-4 shadow-lg shadow-[var(--color-primary)]/20 text-lg font-bold"
             :disabled="form.processing"
           >
-            {{ form.processing ? 'Creando...' : 'Crear Usuario' }}
+            {{ form.processing ? 'Registrando...' : 'Registrar Usuario' }}
           </button>
-          <Link
-            :href="route('users.index')"
-            class="btn-secondary"
-          >
-            Cancelar
-          </Link>
         </div>
-      </form>
-    </Card>
+      </div>
+    </form>
   </AppLayout>
 </template>
 
@@ -180,25 +130,27 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 
 const props = defineProps({
-  servicios: {
-    type: Array,
-    default: () => []
-  }
+  servicios: Array
 });
 
 const form = useForm({
   name: '',
+  apellido: '',
   email: '',
+  telefono: '',
   password: '',
   password_confirmation: '',
   rol: '',
-  estado_barbero: 'disponible',
   servicios: [],
 });
 
+const toggleServicio = (id) => {
+  const index = form.servicios.indexOf(id);
+  if (index > -1) form.servicios.splice(index, 1);
+  else form.servicios.push(id);
+};
+
 const handleSubmit = () => {
-  form.post(route('users.store'), {
-    preserveScroll: true,
-  });
+  form.post(route('users.store'));
 };
 </script>

@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Barbero;
 use App\Models\Cliente;
+use App\Models\Servicio;
+use App\Models\ServicioBarbero;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -26,9 +30,7 @@ class UserController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'rol' => $user->rol,
-                    'estado' => $user->rol === 'barbero' && $user->barbero 
-                        ? $user->barbero->estado_barbero 
-                        : 'activo',
+                    'estado' => $user->estado ,
                     'created_at' => $user->created_at->format('d/m/Y'),
                 ];
             });
@@ -43,7 +45,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        $servicios = \App\Models\Servicio::where('estado', 'activo')
+        $servicios = Servicio::where('estado', 'activo')
             ->select('id', 'nombre', 'descripcion', 'precio')
             ->get();
 
@@ -59,46 +61,56 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'apellido' => 'nullable|string|max:100',
             'email' => 'required|string|email|max:255|unique:users',
+            'telefono' => 'nullable|string|max:40',
             'password' => 'required|string|min:8|confirmed',
-            'rol' => ['required', Rule::in(['barbero', 'cliente'])],
-            'estado_barbero' => 'nullable|in:disponible,ocupado,descanso',
+            'rol' => ['required', Rule::in(['barbero', 'cliente', 'administrador'])],
             'servicios' => 'nullable|array',
             'servicios.*' => 'exists:servicios,id',
         ]);
 
-        // Create user
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'rol' => $validated['rol'],
-        ]);
+        DB::beginTransaction();
 
-        // Create role-specific record
-        if ($validated['rol'] === 'barbero') {
-            $barbero = Barbero::create([
-                'usuario_id' => $user->id,
-                'estado_barbero' => $validated['estado_barbero'] ?? 'disponible',
+        try {
+            // 1. Crear Usuario Base
+            $user = User::create([
+                'name' => $validated['name'],
+                'apellido' => $validated['apellido'],
+                'email' => $validated['email'],
+                'telefono' => $validated['telefono'],
+                'password' => Hash::make($validated['password']),
+                'rol' => $validated['rol'],
             ]);
 
-            // Asociar servicios al barbero
-            if (!empty($validated['servicios'])) {
-                foreach ($validated['servicios'] as $servicioId) {
-                    \App\Models\ServicioBarbero::create([
+            // 2. Lógica según Rol
+            if ($validated['rol'] === 'barbero') {
+                $barbero = Barbero::create([
+                    'id' => $user->id,
+                    
+                ]);
+
+                // Asociar servicios iniciales
+                if (!empty($validated['servicios'])) {
+                    $serviciosData = collect($validated['servicios'])->map(fn($sid) => [
                         'barbero_id' => $barbero->id,
-                        'servicio_id' => $servicioId,
+                        'servicio_id' => $sid,
                     ]);
+                    ServicioBarbero::insert($serviciosData->toArray());
                 }
+            } 
+            
+            if ($validated['rol'] === 'cliente') {
+                Cliente::create(['id' => $user->id]);
             }
-        } else {
-            Cliente::create([
-                'usuario_id' => $user->id,
-            ]);
-        }
 
-        return redirect()->route('users.index')
-            ->with('success', 'Usuario creado exitosamente');
+            DB::commit();
+            return redirect()->route('users.index')->with('success', 'Usuario creado exitosamente.');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withErrors(['error' => 'Error al crear: ' . $e->getMessage()])->withInput();
+        }
     }
 
     /**
@@ -111,12 +123,15 @@ class UserController extends Controller
         $userData = [
             'id' => $user->id,
             'name' => $user->name,
+            'apellido' => $user->apellido,
+            'telefono' => $user->telefono,
             'email' => $user->email,
             'rol' => $user->rol,
             'estado_barbero' => $user->rol === 'barbero' && $user->barbero 
                 ? $user->barbero->estado_barbero 
                 : null,
-            'created_at' => $user->created_at->format('d/m/Y H:i'),
+            'created_at' => $user->created_at, // Enviamos el objeto para que el Helper lo formatee
+            'updated_at' => $user->updated_at,
         ];
 
         return Inertia::render('Users/Show', [
@@ -131,7 +146,7 @@ class UserController extends Controller
     {
         $user = User::with(['barbero.servicioBarberos', 'cliente'])->findOrFail($id);
 
-        $servicios = \App\Models\Servicio::where('estado', 'activo')
+        $servicios = Servicio::where('estado', 'activo')
             ->select('id', 'nombre', 'descripcion', 'precio')
             ->get();
 
@@ -144,10 +159,11 @@ class UserController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'apellido' => $user->apellido,
+            'telefono' => $user->telefono,
             'rol' => $user->rol,
-            'estado_barbero' => $user->rol === 'barbero' && $user->barbero 
-                ? $user->barbero->estado_barbero 
-                : 'disponible',
+            'estado' => $user->estado, 
+            'estado_barbero' => $user->rol === 'barbero' ? $user->barbero->estado_barbero : 'disponible',
             'servicios' => $serviciosSeleccionados,
         ];
 
@@ -160,85 +176,90 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+   public function update(Request $request, string $id)
     {
+        
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'apellido' => 'nullable|string|max:100',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'telefono' => 'nullable|string|max:40',
+            'estado' => 'required|in:activo,inactivo',
+            'rol' => ['required', Rule::in(['administrador', 'barbero', 'cliente'])],
             'password' => 'nullable|string|min:8|confirmed',
-            'rol' => ['required', Rule::in(['barbero', 'cliente'])],
             'estado_barbero' => 'nullable|in:disponible,ocupado,descanso',
             'servicios' => 'nullable|array',
             'servicios.*' => 'exists:servicios,id',
         ]);
+        
 
-        // Update user
-        $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'rol' => $validated['rol'],
-        ]);
+        DB::beginTransaction();
 
-        // Update password if provided
-        if (!empty($validated['password'])) {
-            $user->update([
-                'password' => Hash::make($validated['password']),
-            ]);
-        }
-
-        // Handle role change
-        if ($validated['rol'] === 'barbero') {
-            // Delete cliente record if exists
-            if ($user->cliente) {
-                $user->cliente->delete();
+        try {
+            // 1. Actualizar Usuario Base
+            // Asegúrate de que estos campos estén en el protected $fillable del modelo User
+            $user->name = $validated['name'];
+            $user->apellido = $validated['apellido'];
+            $user->email = $validated['email'];
+            $user->telefono = $validated['telefono'];
+            $user->estado = $validated['estado'];
+            $user->rol = $validated['rol'];
+            if (!empty($validated['password'])) {
+                $user->password = Hash::make($validated['password']);
             }
-            
-            // Create or update barbero record
-            if ($user->barbero) {
-                $user->barbero->update([
-                    'estado_barbero' => $validated['estado_barbero'] ?? 'disponible',
-                ]);
-                $barbero = $user->barbero;
-            } else {
-                $barbero = Barbero::create([
-                    'usuario_id' => $user->id,
-                    'estado_barbero' => $validated['estado_barbero'] ?? 'disponible',
-                ]);
+            if (!$user->save()) {
+                throw new Exception("Error al actualizar los datos básicos del usuario.");
             }
 
-            // Actualizar servicios del barbero
-            // Primero eliminar los servicios actuales
-            \App\Models\ServicioBarbero::where('barbero_id', $barbero->id)->delete();
-            
-            // Luego agregar los nuevos servicios
-            if (!empty($validated['servicios'])) {
-                foreach ($validated['servicios'] as $servicioId) {
-                    \App\Models\ServicioBarbero::create([
-                        'barbero_id' => $barbero->id,
-                        'servicio_id' => $servicioId,
-                    ]);
+            // 2. Lógica de Barbero y Servicios
+            if ($validated['rol'] === 'barbero') {
+                $barbero = Barbero::firstOrCreate(['id' => $user->id]);
+
+                if (isset($validated['estado_barbero'])) {
+                    $barbero->estado_barbero = $validated['estado_barbero'];
+                    $barbero->save();
+                }
+
+                $serviciosNuevos = $validated['servicios'] ?? [];
+                $serviciosActuales = $barbero->servicioBarberos()->pluck('servicio_id')->toArray();
+
+                // Eliminar los que ya no están
+                $aEliminar = array_diff($serviciosActuales, $serviciosNuevos);
+                if (!empty($aEliminar)) {
+                    $barbero->servicioBarberos()->whereIn('servicio_id', $aEliminar)->delete();
+                }
+
+                // Agregar los nuevos
+                $aAgregar = array_diff($serviciosNuevos, $serviciosActuales);
+                if (!empty($aAgregar)) {
+                    foreach ($aAgregar as $sid) {
+                        ServicioBarbero::create([
+                            'barbero_id' => $barbero->id,
+                            'servicio_id' => $sid,
+                        ]);
+                    }
                 }
             }
-        } else {
-            // Delete barbero record if exists
-            if ($user->barbero) {
-                $user->barbero->delete();
+
+            // 3. Lógica de Cliente
+            if ($validated['rol'] === 'cliente') {
+                Cliente::firstOrCreate(['id' => $user->id]);
             }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Usuario actualizado con éxito.');
+
+        } catch (Exception $e) {
+            DB::rollBack();
             
-            // Create cliente record if doesn't exist
-            if (!$user->cliente) {
-                Cliente::create([
-                    'usuario_id' => $user->id,
-                ]);
-            }
+            return redirect()->back()
+                ->withErrors(['error' => 'Error en la base de datos: ' . $e->getMessage()])
+                ->withInput();
         }
-
-        return redirect()->route('users.index')
-            ->with('success', 'Usuario actualizado exitosamente');
     }
-
     /**
      * Remove the specified resource from storage.
      */
