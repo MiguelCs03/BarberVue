@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('apellido',100)->nullable();
             $table->string('email')->unique();
             $table->string('telefono',40)->nullable();
-            $table->enum('rol', ['administrador', 'barbero', 'cliente'])->default('cliente');
+            $table->enum('rol', ['propietario', 'barbero', 'cliente'])->default('cliente');
             $table->string('estado',100)->default('activo');
             $table->string('url_profile')->nullable();
             $table->timestamp('email_verified_at')->nullable();
