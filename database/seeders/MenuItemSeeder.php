@@ -68,7 +68,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Movimientos',
             'icono' => 'clipboard',
-            'ruta' => 'inventory.index', // ✅ CORREGIDO: Usamos el nombre de la ruta
+            'ruta' => 'movimientos.index', // ✅ CORREGIDO: Usamos el nombre de la ruta
             'orden' => 3,
             'parent_id' => $inventoryHeader->id,
             'roles' => 'barbero',

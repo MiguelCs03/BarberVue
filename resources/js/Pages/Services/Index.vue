@@ -154,18 +154,18 @@ const actions = [
     handler: (service) => router.visit(route('services.edit', service.id)),
     variant: 'primary',
   },
-  {
-    label: 'Eliminar',
-    icon:TrashIcon,
-    handler: (service) => {
-      if (confirm(`¿Estás seguro de eliminar "${service.nombre}"?`)) {
-        router.delete(route('services.destroy', service.id), {
-          preserveScroll: true,
-        });
-      }
-    },
-    variant: 'danger',
-  },
+  // {
+  //   label: 'Eliminar',
+  //   icon:TrashIcon,
+  //   handler: (service) => {
+  //     if (confirm(`¿Estás seguro de eliminar "${service.nombre}"?`)) {
+  //       router.delete(route('services.destroy', service.id), {
+  //         preserveScroll: true,
+  //       });
+  //     }
+  //   },
+  //   variant: 'danger',
+  // },
 ];
 
 </script>

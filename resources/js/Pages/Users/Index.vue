@@ -113,18 +113,18 @@ const actions = [
     handler: (user) => router.visit(route('users.edit', user.id)),
     variant: 'primary',
   },
-  {
-    label: 'Eliminar',
-    icon:TrashIcon,
-    handler: (user) => {
-      if (confirm(`¿Estás seguro de eliminar a ${user.name}?`)) {
-        router.delete(route('users.destroy', user.id), {
-          preserveScroll: true,
-        });
-      }
-    },
-    variant: 'danger',
-  },
+  // {
+  //   label: 'Eliminar',
+  //   icon:TrashIcon,
+  //   handler: (user) => {
+  //     if (confirm(`¿Estás seguro de eliminar a ${user.name}?`)) {
+  //       router.delete(route('users.destroy', user.id), {
+  //         preserveScroll: true,
+  //       });
+  //     }
+  //   },
+  //   variant: 'danger',
+  // },
 ];
 
 // Filtered users based on search and role

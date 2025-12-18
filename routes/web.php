@@ -7,6 +7,8 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\CitaController;
+use App\Http\Controllers\HorarioBarberoController;
+use App\Http\Controllers\MovimientoInventarioController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Foundation\Application;
@@ -85,6 +87,16 @@ Route::middleware('auth')->group(function () {
         
         // Appointment Management Routes
         Route::resource('appointments', AppointmentController::class);
+
+        // Movimientos de Inventario
+        Route::get('/movimientos', [MovimientoInventarioController::class, 'index'])->name('movimientos.index');
+        Route::get('/movimientos/create', [MovimientoInventarioController::class, 'create'])->name('movimientos.create');
+        Route::post('/movimientos', [MovimientoInventarioController::class, 'store'])->name('movimientos.store');
+        Route::get('/movimientos/{id}', [MovimientoInventarioController::class, 'show'])->name('movimientos.show');
+        Route::get('/movimientos/{id}/edit', [MovimientoInventarioController::class, 'edit'])->name('movimientos.edit');
+        Route::put('/movimientos/{id}', [MovimientoInventarioController::class, 'update'])->name('movimientos.update');
+
+
         
         // Analytics Route
         Route::get('/analytics/visits', function () {
@@ -95,10 +107,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
         // Horarios Management Routes
-        Route::resource('horarios', \App\Http\Controllers\HorarioBarberoController::class);
-        Route::post('/horarios/excepciones', [\App\Http\Controllers\HorarioBarberoController::class, 'storeExcepcion'])->name('horarios.excepciones.store');
-        Route::delete('/horarios/excepciones/{id}', [\App\Http\Controllers\HorarioBarberoController::class, 'destroyExcepcion'])->name('horarios.excepciones.destroy');
+        Route::resource('horarios', HorarioBarberoController::class);
+        Route::post('/horarios/excepciones', [HorarioBarberoController::class, 'storeExcepcion'])->name('horarios.excepciones.store');
+        Route::delete('/horarios/excepciones/{id}', [HorarioBarberoController::class, 'destroyExcepcion'])->name('horarios.excepciones.destroy');
     });
+    //Route::get('/movimientos', [MovimientoInventarioController::class, 'index'])->name('movimientos.index');
+    
     //jest
     // Rutas compartidas (disponibles para barbero y cliente)
     Route::post('/citas/barberos-disponibles', [CitaController::class, 'getBarberosDisponiblesV2'])
@@ -123,6 +137,8 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('ThemeTest');
     })->name('theme.test');
 });
+
+///Route::get('/jest', [MovimientoInventarioController::class, 'index'])->name('jest');
 
 
 require __DIR__.'/auth.php';

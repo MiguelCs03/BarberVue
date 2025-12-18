@@ -76,8 +76,8 @@
         </div>
       </Card>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card class="md:col-span-2">
+      
+        <Card class="flex flex-col md:flex-row md:grid-cols-3 gap-6">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div class="flex gap-4">
               <div class="w-10 h-10 rounded-full flex items-center justify-center bg-blue-500/10">
@@ -105,7 +105,7 @@
           </div>
         </Card>
 
-        <Card border-color="red">
+        <!-- <Card border-color="red">
           <h3 class="text-sm font-bold text-red-600 uppercase mb-4">Zona de Peligro</h3>
           <button
             @click="handleDelete"
@@ -113,8 +113,8 @@
           >
             Eliminar Usuario
           </button>
-        </Card>
-      </div>
+        </Card> -->
+      
     </div>
   </AppLayout>
 </template>

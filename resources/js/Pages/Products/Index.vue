@@ -82,6 +82,8 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
 import DataTable from '@/Components/DataTable.vue';
+import { PencilIcon,EyeIcon } from '@heroicons/vue/24/outline';
+
 
 // Receive products from backend
 const props = defineProps({
@@ -104,26 +106,30 @@ const columns = [
 const actions = [
   {
     label: 'Ver',
-    handler: (product) => router.visit(route('products.show', product.id)),
+    icon:EyeIcon,
+    handler: (service) => router.visit(route('services.show', service.id)),
     variant: 'primary',
   },
   {
     label: 'Editar',
-    handler: (product) => router.visit(route('products.edit', product.id)),
+    icon:PencilIcon,
+    handler: (service) => router.visit(route('services.edit', service.id)),
     variant: 'primary',
   },
-  {
-    label: 'Eliminar',
-    handler: (product) => {
-      if (confirm(`¿Estás seguro de eliminar "${product.nombre}"?`)) {
-        router.delete(route('products.destroy', product.id), {
-          preserveScroll: true,
-        });
-      }
-    },
-    variant: 'danger',
-  },
+  // {
+  //   label: 'Eliminar',
+  //   icon:TrashIcon,
+  //   handler: (service) => {
+  //     if (confirm(`¿Estás seguro de eliminar "${service.nombre}"?`)) {
+  //       router.delete(route('services.destroy', service.id), {
+  //         preserveScroll: true,
+  //       });
+  //     }
+  //   },
+  //   variant: 'danger',
+  // },
 ];
+
 
 // Filtered products
 const filteredProducts = computed(() => {
