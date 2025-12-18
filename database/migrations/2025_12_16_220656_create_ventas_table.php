@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('cita_id')->nullable()->constrained('citas');
             $table->foreignId('cliente_id')->constrained('clientes');
-            $table->foreignId('barbero_id')->constrained('barberos');
+            $table->foreignId('barbero_id')->nullable()->constrained('barberos');
             $table->decimal('monto_total', 10, 2);
             $table->string('estado_pago', 100)->default('pendiente');
             $table->timestamps();

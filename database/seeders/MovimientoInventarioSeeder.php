@@ -51,6 +51,7 @@ class MovimientoInventarioSeeder extends Seeder
                 ]);
 
                 $movimiento->created_at = $fecha;
+                $movimiento->fecha = $fecha;
                 $movimiento->updated_at = $fecha;
                 $movimiento->save();
             }

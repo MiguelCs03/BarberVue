@@ -103,7 +103,7 @@ class CitaController extends Controller
         $usuarioAutenticado = Auth::user();
         $clienteAutenticado = $usuarioAutenticado->cliente;
         $rolDeUsuario = $usuarioAutenticado->rol;
-        $configuracion = Configuracion::where('nombre', 'Porcentaje de Reserva de Citas')
+        $configuracion = Configuracion::where('nombre', 'porcentaje_cita')
             ->first();
         $tipoPagoQr = TipoPago::where('nombre','QR')->first();
         $valorPorcentajeReserva = $configuracion ? (float) $configuracion->valor : 0;

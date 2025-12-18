@@ -16,9 +16,9 @@ return new class extends Migration
             $table->foreignId('venta_id')->constrained('ventas');
             $table->foreignId('tipo_pago_id')->constrained('tipo_pagos');
             $table->decimal('monto', 10, 2);
-            $table->string('transaccion_id_pagofacil')->nullable()->after('tipo_pago_id');
-            $table->string('transaccion_uuid')->nullable()->after('transaccion_id_pagofacil');
-            $table->text('qr_image')->nullable()->after('transaccion_uuid');
+            $table->string('transaccion_id_pagofacil')->nullable();
+            $table->string('transaccion_uuid')->nullable();
+            $table->text('qr_image')->nullable();
             $table->timestamps();
         });
     }

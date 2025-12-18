@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('horario_barberos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('barbero_id')->constrained('barberos')->onDelete('cascade');
-            $table->enum('dia_semana', ['1', '2', '3', '4', '5', '6', '7']); // 1=Lunes, 7=Domingo
+            $table->enum('dia_semana', ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']); // 1=Lunes, 7=Domingo
             $table->time('hora_inicio');
             $table->time('hora_fin');
             $table->timestamps();
+            
             
             // Índice para mejorar consultas
             $table->index(['barbero_id', 'dia_semana']);

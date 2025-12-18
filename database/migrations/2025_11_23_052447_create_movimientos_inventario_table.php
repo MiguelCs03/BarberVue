@@ -11,10 +11,11 @@ return new class extends Migration
         Schema::create('movimiento_inventarios', function (Blueprint $table) {
             $table->id();
             $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
-            $table->enum('tipo_movimiento', ['entrada', 'salida', 'ajuste']);
-            $table->integer('cantidad');
-            $table->string('motivo');
-            $table->date('fecha')->nullable();
+            $table->enum('tipo_movimiento', ['entrada', 'salida', 'ajuste'])->default('entrada');
+            $table->integer('cantidad')->default(0);
+            $table->string('estado',50)->default('activo');
+            $table->string('motivo')->nullable();
+            $table->dateTime('fecha')->nullable();
             $table->timestamps();
         });
     }

@@ -22,45 +22,44 @@ class HorarioBarberoSeeder extends Seeder
             return;
         }
 
-        // Para cada barbero, crear horarios de ejemplo
+        $diasLiteral = [
+            1 => 'lunes',
+            2 => 'martes',
+            3 => 'miercoles',
+            4 => 'jueves',
+            5 => 'viernes',
+            6 => 'sabado',
+            7 => 'domingo'
+        ];
+
         foreach ($barberos as $barbero) {
-            // Horario de Lunes a Viernes: 9:00 - 18:00
-            for ($dia = 1; $dia <= 5; $dia++) {
+            // Lunes a Viernes
+            for ($i = 1; $i <= 5; $i++) {
                 HorarioBarbero::create([
                     'barbero_id' => $barbero->id,
-                    'dia_semana' => (string)$dia,
+                    'dia_semana' => $diasLiteral[$i], // Inserta 'lunes', 'martes', etc.
                     'hora_inicio' => '09:00:00',
                     'hora_fin' => '18:00:00',
                 ]);
             }
 
-            // Sábado: 10:00 - 14:00
+            // Sábado
             HorarioBarbero::create([
                 'barbero_id' => $barbero->id,
-                'dia_semana' => '6',
+                'dia_semana' => 'sabado',
                 'hora_inicio' => '10:00:00',
-                'hora_fin' => '14:00:00',
+                'hora_fin' => '18:00:00',
             ]);
 
-            // Crear una excepción de ejemplo (día no disponible en el futuro)
+            // Excepciones (esto se mantiene igual ya que usa fechas Y-m-d)
             ExcepcionHorario::create([
                 'barbero_id' => $barbero->id,
                 'fecha' => now()->addDays(15)->format('Y-m-d'),
                 'es_disponible' => false,
                 'motivo' => 'Día libre',
             ]);
-
-            // Crear una excepción con horario especial
-            ExcepcionHorario::create([
-                'barbero_id' => $barbero->id,
-                'fecha' => now()->addDays(20)->format('Y-m-d'),
-                'es_disponible' => true,
-                'hora_inicio' => '14:00:00',
-                'hora_fin' => '18:00:00',
-                'motivo' => 'Horario especial - Solo tarde',
-            ]);
         }
 
-        $this->command->info('Horarios de barberos creados exitosamente.');
+        $this->command->info('Horarios creados con nombres de días (Enum) exitosamente.');
     }
 }

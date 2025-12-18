@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             BarberoSeeder::class,
             ClienteSeeder::class,
-            ConfiguracionSeeder::class, 
+            ConfiguracionSeeder::class,
             TipoPagoSeeder::class,
             ServicioSeeder::class,
             ProductoSeeder::class,
@@ -35,7 +35,9 @@ class DatabaseSeeder extends Seeder
             ServicioBarberoSeeder::class,
             MovimientoInventarioSeeder::class,
             CitaSeeder::class,
-            
+            VentaProductoSeeder::class,
+            VentaServicioSeeder::class,
+            FullTransactionSeeder::class,
         ]);
     }
 }

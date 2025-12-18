@@ -17,7 +17,7 @@ class ConfiguracionSeeder extends Seeder
         $this->command->info('🔄 Iniciando seeder de Configuracion...');
         $configuraciones = [
             [
-                'nombre' => 'Porcentaje de Reserva de Citas',
+                'nombre' => 'porcentaje_cita',
                 'valor' => '30', 
                 'descripcion' => 'Porcentaje de cobro para reservar cita',
             ],
