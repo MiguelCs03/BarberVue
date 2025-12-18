@@ -59,7 +59,13 @@ Route::middleware('auth')->group(function () {
         // User Management Routes
         
         // Product Management Routes
-        Route::resource('products', ProductController::class);
+        Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+        Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+        Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');
+        Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
         
         // Service Management Routes
         Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
@@ -95,6 +101,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/movimientos/{id}', [MovimientoInventarioController::class, 'show'])->name('movimientos.show');
         Route::get('/movimientos/{id}/edit', [MovimientoInventarioController::class, 'edit'])->name('movimientos.edit');
         Route::put('/movimientos/{id}', [MovimientoInventarioController::class, 'update'])->name('movimientos.update');
+        Route::post('/movimientos/{id}/anular', [MovimientoInventarioController::class, 'anular'])->name('movimientos.anular');
 
 
         

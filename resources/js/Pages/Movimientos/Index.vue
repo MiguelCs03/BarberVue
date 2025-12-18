@@ -12,54 +12,92 @@
     </div>
 
     <Card class="mb-6">
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex-1 max-w-xs">
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </span>
-            <input
-              v-model="filters.search"
-              @input="handleFilters"
-              type="text"
-              placeholder="Buscar producto..."
-              class="input w-full pl-10 py-2" 
-            />
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
+      <div class="flex flex-col space-y-4">
+        <div class="flex flex-wrap items-center gap-4">
           
-          <DateRangePicker 
-            v-model:desde="filters.desde"
-            v-model:hasta="filters.hasta"
-            @change="handleFilters"
-          />
+          <div class="flex-1 min-w-[250px]">
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
+              </span>
+              <input
+                v-model="filters.search"
+                @input="handleFilters"
+                type="text"
+                placeholder="Buscar por nombre de producto..."
+                class="input w-full pl-10 py-2" 
+              />
+            </div>
+          </div>
 
-          <select v-model="filters.tipo" @change="handleFilters" class="input py-2 text-sm" :style="{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }">
+          <select v-model="filters.tipo" @change="handleFilters" class="input py-2 text-sm w-full md:w-40" :style="selectStyle">
             <option value="">Todos los Tipos</option>
-            <option value="entrada" :style="{ backgroundColor: 'var(--bg-secondary)' }">Entradas</option>
-            <option value="salida" :style="{ backgroundColor: 'var(--bg-secondary)' }">Salidas</option>
-            <option value="ajuste" :style="{ backgroundColor: 'var(--bg-secondary)' }">Ajustes</option>
+            <option value="entrada">Entradas</option>
+            <option value="salida">Salidas</option>
+            <option value="ajuste">Ajustes</option>
           </select>
 
-          <select v-model="filters.estado" @change="handleFilters" class="input py-2 text-sm" :style="{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }">
-            <option value="">Estado</option>
-            <option value="activo" :style="{ backgroundColor: 'var(--bg-secondary)' }">Activos</option>
-            <option value="anulado" :style="{ backgroundColor: 'var(--bg-secondary)' }">Anulados</option>
+          <select v-model="filters.estado" @change="handleFilters" class="input py-2 text-sm w-full md:w-40" :style="selectStyle">
+            <option value="">Todos los Estados</option>
+            <option value="activo">Activos</option>
+            <option value="anulado">Anulados</option>
           </select>
 
-          <Link
-            :href="route('movimientos.create')"
-            class="btn-primary whitespace-nowrap px-4 py-2 flex items-center gap-2 shadow-sm"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
+          <Link :href="route('movimientos.create')" class="btn-primary px-4 py-2 flex items-center gap-2 ml-auto">
+            <PlusIcon class="w-5 h-5" />
             <span>Nuevo</span>
           </Link>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-2 border-t border-dashed dark:border-gray-700">
+          <span class="text-xs font-bold uppercase tracking-wider" :style="{ color: 'var(--text-secondary)' }">
+            Filtrar por Fecha:
+          </span>
+
+          <div class="relative flex items-center group">
+            
+            <input
+              v-model="filters.desde"
+              type="datetime-local"
+              @change="handleFilters"
+              class="input pl-9 pr-8 py-1.5 text-xs"
+              :style="selectStyle"
+            />
+            <button 
+              v-if="filters.desde" 
+              @click="clearDate('desde')"
+              class="absolute right-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <XMarkIcon class="w-3 h-3 text-red-500" />
+            </button>
+          </div>
+
+          <span class="text-gray-400">a</span>
+
+          <div class="relative flex items-center group">
+            <input
+              v-model="filters.hasta"
+              type="datetime-local"
+              @change="handleFilters"
+              class="input pl-9 pr-8 py-1.5 text-xs"
+              :style="selectStyle"
+            />
+            <button 
+              v-if="filters.hasta" 
+              @click="clearDate('hasta')"
+              class="absolute right-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <XMarkIcon class="w-3 h-3 text-red-500" />
+            </button>
+          </div>
+
+          <button 
+            v-if="hasFilters"
+            @click="clearAll"
+            class="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+          >
+            <TrashIcon class="w-3 h-3" /> Limpiar Filtros
+          </button>
         </div>
       </div>
     </Card>
@@ -80,72 +118,38 @@
         </template>
 
         <template #cell-cantidad="{ item }">
-          <span 
-            v-if="item"
-            class="font-bold text-lg"
-            :class="item.tipo_movimiento === 'entrada' ? 'text-green-600' : 'text-red-600'"
-          >
+          <span class="font-bold" :class="getTextColor(item.tipo_movimiento)">
             {{ item.cantidad }}
           </span>
         </template>
-
         <template #cell-estado="{ value }">
-          <Badge :variant="value === 'activo' ? 'success' : 'danger'">
-            {{ value === 'activo' ? 'Válido' : 'Anulado' }}
+          <Badge :variant="value === 'activo' ? 'success' : 'danger'" class="uppercase text-[10px] font-bold">
+            {{ value === 'activo' ? '✓ Activo' : '✕ Anulado' }}
           </Badge>
-        </template>
-
-        <template #cell-fecha="{ value }">
-          <span class="text-sm font-medium" :style="{ color: 'var(--text-secondary)' }">
-            {{ value }}
-          </span>
         </template>
       </DataTable>
 
-      <div v-if="movimientos.links && movimientos.links.length > 3" class="mt-4 flex justify-between items-center border-t pt-4 dark:border-gray-700">
-        <div :style="{ color: 'var(--text-secondary)' }" class="text-sm">
-          Mostrando {{ movimientos.from }} - {{ movimientos.to }} de {{ movimientos.total }}
-        </div>
-        <div class="flex gap-1">
-          <template v-for="link in movimientos.links" :key="link.label">
-            <Link
-              v-if="link.url"
-              :href="link.url"
-              :class="[
-                'px-3 py-1 rounded text-sm transition-colors',
-                link.active ? 'btn-primary' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-              ]"
-              v-html="link.label"
-            />
-            <span v-else class="px-3 py-1 rounded text-sm opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900" v-html="link.label" />
-          </template>
-        </div>
-      </div>
-    </Card>
+      </Card>
   </AppLayout>
 </template>
 
 <script setup>
-import { reactive } from 'vue';
+import { reactive, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
 import DataTable from '@/Components/DataTable.vue';
 import { 
-  EyeIcon, 
-  ArrowUpCircleIcon, 
-  ArrowDownCircleIcon, 
-  ExclamationCircleIcon 
+  EyeIcon, ArrowUpCircleIcon, ArrowDownCircleIcon, ExclamationCircleIcon,
+  MagnifyingGlassIcon, PlusIcon, CalendarIcon, XMarkIcon, TrashIcon
 } from '@heroicons/vue/24/outline';
-import DateRangePicker from './components/DateRangePicker.vue';
 
 const props = defineProps({
   movimientos: Object,
   filters: Object,
 });
 
-// Filtros reactivos incluyendo fechas
 const filters = reactive({
   search: props.filters.search || '',
   tipo: props.filters.tipo || '',
@@ -154,7 +158,16 @@ const filters = reactive({
   hasta: props.filters.hasta || '',
 });
 
-// Lógica de filtrado con debounce para evitar múltiples peticiones
+const selectStyle = computed(() => ({
+  backgroundColor: 'var(--bg-secondary)',
+  color: 'var(--text-primary)',
+  borderColor: 'var(--border-color)'
+}));
+
+const hasFilters = computed(() => {
+  return filters.search || filters.tipo || filters.estado || filters.desde || filters.hasta;
+});
+
 let timeout = null;
 const handleFilters = () => {
   clearTimeout(timeout);
@@ -167,12 +180,42 @@ const handleFilters = () => {
   }, 300);
 };
 
+// Limpia una fecha específica
+const clearDate = (field) => {
+  filters[field] = '';
+  handleFilters();
+};
+
+// Limpia todos los filtros
+const clearAll = () => {
+  filters.search = '';
+  filters.tipo = '';
+  filters.estado = '';
+  filters.desde = '';
+  filters.hasta = '';
+  handleFilters();
+};
+
+const getTipoVariant = (tipo) => {
+  const variants = { entrada: 'success', salida: 'danger', ajuste: 'warning' };
+  return variants[tipo] || 'default';
+};
+
+const getTipoIcon = (tipo) => {
+  const icons = { entrada: ArrowUpCircleIcon, salida: ArrowDownCircleIcon, ajuste: ExclamationCircleIcon };
+  return icons[tipo];
+};
+
+const getTextColor = (tipo) => {
+  return tipo === 'entrada' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+};
+
 const columns = [
   { key: 'producto_nombre', label: 'Producto' },
-  { key: 'tipo_movimiento', label: 'Tipo De Movimiento' },
+  { key: 'tipo_movimiento', label: 'Tipo Movimiento' },
   { key: 'cantidad', label: 'Cantidad' },
   { key: 'estado', label: 'Estado' },
-  { key: 'fecha', label: 'Fecha' },
+  { key: 'fecha', label: 'Fecha Movimiento' },
 ];
 
 const actions = [
@@ -183,23 +226,4 @@ const actions = [
     variant: 'primary',
   }
 ];
-
-// Helpers para estilos de Badges
-const getTipoVariant = (tipo) => {
-  const variants = {
-    entrada: 'success',
-    salida: 'danger',
-    ajuste: 'warning'
-  };
-  return variants[tipo] || 'default';
-};
-
-const getTipoIcon = (tipo) => {
-  const icons = {
-    entrada: ArrowUpCircleIcon,
-    salida: ArrowDownCircleIcon,
-    ajuste: ExclamationCircleIcon
-  };
-  return icons[tipo];
-};
 </script>

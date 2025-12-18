@@ -15,7 +15,7 @@ return new class extends Migration
             $table->integer('cantidad')->default(0);
             $table->string('estado',50)->default('activo');
             $table->string('motivo')->nullable();
-            $table->dateTime('fecha')->nullable();
+            $table->dateTime('fecha')->default(now());
             $table->timestamps();
         });
     }
