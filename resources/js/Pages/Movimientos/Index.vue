@@ -128,7 +128,32 @@
           </Badge>
         </template>
       </DataTable>
+      
+      <div v-if="movimientos.links && movimientos.links.length > 3" class="mt-4 flex justify-between items-center">
+        <div :style="{ color: 'var(--text-secondary)' }">
+          Mostrando {{ movimientos.from }} - {{ movimientos.to }} de {{ movimientos.total }}
+        </div>
 
+        <div class="flex gap-2">
+          <template v-for="link in movimientos.links" :key="link.label">
+            <Link
+              v-if="link.url"
+              :href="link.url"
+              :class="[
+                'px-3 py-1 rounded transition-all',
+                link.active ? 'btn-primary' : 'btn-secondary'
+              ]"
+              v-html="link.label"
+            />
+
+            <span
+              v-else
+              :class="['px-3 py-1 rounded btn-secondary opacity-50 cursor-not-allowed']"
+              v-html="link.label"
+            />
+          </template>
+        </div>
+      </div>
       </Card>
   </AppLayout>
 </template>
@@ -157,7 +182,11 @@ const filters = reactive({
   desde: props.filters.desde || '',
   hasta: props.filters.hasta || '',
 });
-
+const formatLinkLabel = (label) => {
+  if (label.includes('Previous')) return '&laquo;';
+  if (label.includes('Next')) return '&raquo;';
+  return label;
+};
 const selectStyle = computed(() => ({
   backgroundColor: 'var(--bg-secondary)',
   color: 'var(--text-primary)',

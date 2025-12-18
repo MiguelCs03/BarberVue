@@ -18,6 +18,7 @@ class Producto extends Model
         'precio_venta',
         'stock_actual',
         'stock_minimo',
+        'estado',
     ];
 
     protected $casts = [

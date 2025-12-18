@@ -115,7 +115,10 @@ class MovimientoInventarioController extends Controller
             if (($producto->stock_actual + $cambioStock) < 0) {
                 return back()->withErrors(['cantidad' => 'Stock insuficiente. El stock actual de {$producto->nombre} es {$producto->stock_actual}.'])->withInput();
             }
-
+            //validacion de estock minimom
+            if(($producto->stock_minimo > $producto->stock_actual + $cambioStock) ){
+                return back()->withErrors(['cantidad' => 'Stock insuficiente. El stock actual de {$producto->nombre} es {$producto->stock_actual}.'])->withInput();
+            }
             // 4. Crear el Movimiento
             MovimientoInventario::create([
                 'producto_id'     => $validated['producto_id'],
@@ -239,6 +242,9 @@ class MovimientoInventarioController extends Controller
 
             if (($producto->stock_actual + $reversionStock) < 0) {
                 return back()->with('error', 'No se puede anular: El stock resultante de ' . $producto->nombre . ' sería negativo (' . $producto->stock_actual . ' + ' . $reversionStock . ').');
+            }
+            if(($producto->stock_minimo > $producto->stock_actual + $reversionStock) ){
+                return back()->withErrors(['cantidad' => 'Stock insuficiente. El stock actual de {$producto->nombre} es {$producto->stock_actual}.'])->withInput();
             }
 
             // 4. Ejecutar la reversión
