@@ -75,7 +75,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium" :style="{ color: 'var(--text-secondary)' }">
-              Citas {{ $page.props.auth.user.rol === 'barbero' ? 'Totales' : 'Mis Citas' }}
+              Citas {{ $page.props.auth.user.rol === 'barbero' || $page.props.auth.user.rol === 'propietario' ? 'Totales' : 'Mis Citas' }}
             </p>
             <p class="text-3xl font-bold mt-2" :style="{ color: 'var(--text-primary)' }">
               {{ $page.props.auth.user.rol === 'barbero' ? '6' : '2' }}
@@ -136,7 +136,9 @@
           Accesos Rápidos
         </h2>
         <div class="grid grid-cols-2 gap-3">
+          
           <Link
+            v-if="$page.props.auth.user.rol === 'cliente'"
             :href="route('citas-cliente.index')"
             class="flex flex-col items-center gap-2 p-4 rounded-lg transition-all hover:shadow-md"
             :style="{ backgroundColor: 'var(--bg-secondary)' }"
@@ -147,6 +149,7 @@
             </span>
           </Link>
           <Link
+            v-if="$page.props.auth.user.rol === 'cliente'"
             :href="route('citas-cliente.create')"
             class="flex flex-col items-center gap-2 p-4 rounded-lg transition-all hover:shadow-md"
             :style="{ backgroundColor: 'var(--bg-secondary)' }"
@@ -156,7 +159,17 @@
               Nueva Citas
             </span>
           </Link>
-
+          <Link
+            v-if="$page.props.auth.user.rol === 'propietario' || $page.props.auth.user.rol === 'barbero'"
+            :href="route('citas-admin.create')"
+            class="flex flex-col items-center gap-2 p-4 rounded-lg transition-all hover:shadow-md"
+            :style="{ backgroundColor: 'var(--bg-secondary)' }"
+          >
+          <PlusCircleIcon class="w-8 h-8" :style="{ color: 'var(--color-primary)' }" />
+            <span class="text-sm font-medium text-center" :style="{ color: 'var(--text-primary)' }">
+              Nueva Citas
+            </span>
+          </Link>
           <Link
             v-if="$page.props.auth.user.rol === 'barbero'"
             :href="route('products.index')"
