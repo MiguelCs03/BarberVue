@@ -87,11 +87,11 @@ class BIController extends Controller
     public function getVentasMensuales()
     {
         $data = Venta::select(
-            DB::raw("TO_CHAR(created_at, 'MM') as month"),
+            DB::raw($this->dateFormat('created_at', 'MM') . " as month"),
             DB::raw('SUM(monto_total) as total')
         )
             ->where('created_at', '>=', now()->subYear())
-            ->where('estado_pago', 'confirmado')
+            ->whereIn('estado_pago', ['confirmado', 'completado'])
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -153,7 +153,7 @@ class BIController extends Controller
             ->join('barberos', 'ventas.barbero_id', '=', 'barberos.id')
             ->join('users', 'barberos.id', '=', 'users.id')
             ->select('users.name as name', DB::raw('SUM(ventas.monto_total) as total'))
-            ->where('ventas.estado_pago', 'pagado')
+            ->whereIn('ventas.estado_pago', ['pagado', 'confirmado', 'completado'])
             ->groupBy('barberos.id', 'users.name')
             ->orderByDesc('total')
             ->get();
@@ -179,7 +179,7 @@ class BIController extends Controller
     public function getCrecimientoClientes()
     {
         $data = Cliente::select(
-            DB::raw("TO_CHAR(created_at, 'MM') as month"),
+            DB::raw($this->dateFormat('created_at', 'MM') . " as month"),
             DB::raw('count(*) as total')
         )
             ->groupBy('month')
@@ -345,7 +345,7 @@ class BIController extends Controller
         $query = DB::table('ventas')
             ->select(
                 'estado_pago as status',
-                DB::raw("TO_CHAR(created_at, '$groupByFormat') as period"),
+                DB::raw($this->dateFormat('created_at', $groupByFormat) . " as period"),
                 DB::raw('SUM(monto_total) as total')
             );
 
@@ -365,7 +365,7 @@ class BIController extends Controller
     {
         $query = DB::table('citas')
             ->select(
-                DB::raw("TO_CHAR(fecha, 'HH24') || ':00' as name"),
+                DB::raw($this->dateFormat('fecha', 'HH24') . " || ':00' as name"),
                 DB::raw('count(*) as total')
             );
 
@@ -395,10 +395,10 @@ class BIController extends Controller
     public function getStatsVentasPorDiaSemana(Request $request)
     {
         $query = DB::table('ventas')
-            ->where('estado_pago', 'confirmado')
+            ->whereIn('estado_pago', ['confirmado', 'completado'])
             ->select(
-                DB::raw("TO_CHAR(created_at, 'Day') as name"),
-                DB::raw("TO_CHAR(created_at, 'D') as day_num"), // Para ordenar
+                DB::raw($this->dateFormat('created_at', 'Day') . " as name"),
+                DB::raw($this->dateFormat('created_at', 'D') . " as day_num"), // Para ordenar
                 DB::raw('SUM(monto_total) as total')
             );
 
@@ -415,9 +415,9 @@ class BIController extends Controller
     public function getStatsTicketPromedioMensual(Request $request)
     {
         $query = DB::table('ventas')
-            ->where('estado_pago', 'confirmado')
+            ->whereIn('estado_pago', ['confirmado', 'completado'])
             ->select(
-                DB::raw("TO_CHAR(created_at, 'YYYY-MM') as name"),
+                DB::raw($this->dateFormat('created_at', 'YYYY-MM') . " as name"),
                 DB::raw('AVG(monto_total) as total')
             );
 
@@ -464,13 +464,13 @@ class BIController extends Controller
     {
         // Ingresos Totales (Mes actual vs Mes anterior)
         $currentMonthIncome = DB::table('ventas')
-            ->where('estado_pago', 'confirmado')
+            ->whereIn('estado_pago', ['confirmado', 'completado'])
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->sum('monto_total');
 
         $lastMonthIncome = DB::table('ventas')
-            ->where('estado_pago', 'confirmado')
+            ->whereIn('estado_pago', ['confirmado', 'completado'])
             ->whereMonth('created_at', Carbon::now()->subMonth()->month)
             ->whereYear('created_at', Carbon::now()->subMonth()->year)
             ->sum('monto_total');
@@ -555,7 +555,7 @@ class BIController extends Controller
             ->join('barberos', 'ventas.barbero_id', '=', 'barberos.id')
             ->join('users', 'barberos.id', '=', 'users.id')
             ->select('users.name as name', DB::raw('SUM(ventas.monto_total) as total'))
-            ->where('ventas.estado_pago', 'confirmado');
+            ->whereIn('ventas.estado_pago', ['confirmado', 'completado']);
 
         $this->applyTimeFilter($query, $request, 'ventas.created_at');
 
@@ -581,7 +581,7 @@ class BIController extends Controller
         $query = DB::table('movimiento_inventarios')
             ->select(
                 'tipo_movimiento as type',
-                DB::raw("TO_CHAR(created_at, '$groupByFormat') as period"),
+                DB::raw($this->dateFormat('created_at', $groupByFormat) . " as period"),
                 DB::raw('count(*) as total')
             );
 
@@ -610,7 +610,7 @@ class BIController extends Controller
         $query = DB::table('citas')
             ->select(
                 'estado',
-                DB::raw("TO_CHAR(fecha, '$groupByFormat') as period"),
+                DB::raw($this->dateFormat('fecha', $groupByFormat) . " as period"),
                 DB::raw('count(*) as total')
             );
 
@@ -639,7 +639,7 @@ class BIController extends Controller
         $query = DB::table('ventas')
             ->select(
                 'estado_pago as status',
-                DB::raw("TO_CHAR(created_at, '$groupByFormat') as period"),
+                DB::raw($this->dateFormat('created_at', $groupByFormat) . " as period"),
                 DB::raw('count(*) as total')
             );
 
@@ -650,6 +650,28 @@ class BIController extends Controller
             ->get();
 
         return $this->formatMultiSeriesResponse($data, 'period', 'status', 'total');
+    }
+
+    /**
+     * Helper para formatear fechas de forma agnostica al driver (SQLite vs PostgreSQL)
+     */
+    private function dateFormat($column, $format)
+    {
+        $driver = DB::connection()->getDriverName();
+        if ($driver === 'sqlite') {
+            $sqliteFormat = match ($format) {
+                'MM' => '%m',
+                'YYYY-MM' => '%Y-%m',
+                'YYYY-MM-DD' => '%Y-%m-%d',
+                'HH24' => '%H',
+                'Day' => '%w',
+                'D' => '%w',
+                'YYYY-MM-DD HH12' => '%Y-%m-%d %H',
+                default => '%Y-%m-%d'
+            };
+            return "strftime('{$sqliteFormat}', {$column})";
+        }
+        return "TO_CHAR({$column}, '{$format}')";
     }
 
     /**

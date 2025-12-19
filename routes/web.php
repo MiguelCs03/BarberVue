@@ -151,6 +151,12 @@ Route::middleware('auth')->group(function () {
         // Reports
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
+        // Reportes (Excel/CSV)
+        Route::prefix('reportes')->name('reportes.')->group(function () {
+            Route::get('/ventas', [ReportController::class, 'exportVentas'])->name('ventas');
+            Route::get('/citas', [ReportController::class, 'exportCitas'])->name('citas');
+        });
+
         // Horarios Management Routes
         Route::resource('horarios', HorarioBarberoController::class);
         Route::post('/horarios/excepciones', [HorarioBarberoController::class, 'storeExcepcion'])->name('horarios.excepciones.store');

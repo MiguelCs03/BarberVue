@@ -145,11 +145,11 @@
     </div>
 
     <!-- Modal Registrar Pago -->
-    <Modal :show="showPaymentModal" @close="showPaymentModal = false" maxWidth="md">
+    <Modal :show="showPaymentModal" @close="closePaymentModal" maxWidth="md">
       <div class="p-6">
         <h2 class="text-xl font-bold mb-4" :style="{ color: 'var(--text-primary)' }">Registrar Pago</h2>
         
-        <form @submit.prevent="submitPayment">
+        <form @submit.prevent="handlePaymentSubmission">
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-bold mb-2">Método de Pago</label>
@@ -174,7 +174,7 @@
             <div class="flex justify-end gap-3 mt-6">
               <button 
                 type="button" 
-                @click="showPaymentModal = false"
+                @click="closePaymentModal"
                 class="btn-secondary px-4 py-2"
               >
                 Cancelar
@@ -192,11 +192,38 @@
         </form>
       </div>
     </Modal>
+    
+    <!-- Modal QR -->
+    <Modal :show="showQrModal" @close="closeQrModal" maxWidth="sm">
+      <div class="p-6 text-center">
+        <h3 class="text-lg font-bold mb-4" :style="{ color: 'var(--text-primary)' }">Escanea para Pagar</h3>
+        
+        <div v-if="qrLoading" class="flex justify-center py-8">
+          <ArrowPathIcon class="w-10 h-10 animate-spin text-indigo-500" />
+        </div>
+        
+        <div v-else-if="qrImage" class="space-y-4">
+          <div class="bg-white p-4 rounded-xl shadow-lg inline-block">
+            <img :src="'data:image/png;base64,' + qrImage" alt="QR Code" class="w-64 h-64" />
+          </div>
+          <p class="font-bold text-2xl" :style="{ color: 'var(--color-primary)' }">Bs. {{ paymentForm.monto }}</p>
+          
+          <div class="flex items-center justify-center gap-2 text-sm animate-pulse" :style="{ color: 'var(--text-secondary)' }">
+            <div class="w-2 h-2 bg-indigo-500 rounded-full"></div>
+            Esperando confirmación...
+          </div>
+        </div>
+
+        <button @click="closeQrModal" class="mt-6 btn-secondary w-full py-2">
+          Cerrar
+        </button>
+      </div>
+    </Modal>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
@@ -210,6 +237,8 @@ import {
   PlusIcon,
   ArrowPathIcon
 } from '@heroicons/vue/24/outline';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const props = defineProps({
   venta: Object,
@@ -217,6 +246,11 @@ const props = defineProps({
 });
 
 const showPaymentModal = ref(false);
+const showQrModal = ref(false);
+const qrImage = ref(null);
+const qrLoading = ref(false);
+const currentTransactionUuid = ref(null);
+let pollingInterval = null;
 
 const paymentForm = useForm({
   tipo_pago_id: props.tiposPago[0]?.id || '',
@@ -235,12 +269,83 @@ const confirmDelete = () => {
   }
 };
 
-const submitPayment = () => {
-  paymentForm.post(route('ventas.payment', props.venta.id), {
-    onSuccess: () => {
-      showPaymentModal.value = false;
-      paymentForm.reset('monto');
-    },
-  });
+const handlePaymentSubmission = async () => {
+  const selectedPayment = props.tiposPago.find(t => t.id === paymentForm.tipo_pago_id);
+  
+  if (selectedPayment && selectedPayment.nombre.toLowerCase().includes('qr')) {
+    // Lógica para Pago QR
+    showPaymentModal.value = false;
+    showQrModal.value = true;
+    qrLoading.value = true;
+
+    try {
+      // 1. Solicitar generación de QR
+      const response = await axios.post(route('ventas.payment', props.venta.id), {
+        ...paymentForm.data(),
+        wants_qr: true // Flag para indicar que queremos JSON con QR, no redirect
+      });
+
+      if (response.data.qrImage) {
+        qrImage.value = response.data.qrImage;
+        currentTransactionUuid.value = response.data.uuid;
+        qrLoading.value = false;
+        
+        // 2. Iniciar Polling
+        startPolling();
+      }
+    } catch (error) {
+      console.error('Error generando QR:', error);
+      closeQrModal();
+      Swal.fire('Error', 'No se pudo generar el código QR', 'error');
+    }
+  } else {
+    // Flujo normal (Efectivo/Stripe)
+    paymentForm.post(route('ventas.payment', props.venta.id), {
+      onSuccess: () => {
+        closePaymentModal();
+        Swal.fire('¡Pago Exitoso!', 'El pago ha sido registrado.', 'success');
+      },
+      onError: () => {
+        Swal.fire('Error', 'Hubo un problema al registrar el pago.', 'error');
+      }
+    });
+  }
 };
+
+const startPolling = () => {
+  if (pollingInterval) clearInterval(pollingInterval);
+  
+  pollingInterval = setInterval(async () => {
+    try {
+      const response = await axios.get(route('api.ventas.verificar-pago', {
+        uuid: currentTransactionUuid.value
+      }));
+
+      if (response.data.confirmada) {
+        clearInterval(pollingInterval);
+        closeQrModal();
+        Swal.fire('¡Pago Confirmado!', 'La transacción se completó exitosamente.', 'success').then(() => {
+          router.reload(); // Recargar para ver el nuevo estado
+        });
+      }
+    } catch (error) {
+      console.error('Error verificando pago:', error);
+    }
+  }, 5000);
+};
+
+const closePaymentModal = () => {
+  showPaymentModal.value = false;
+  paymentForm.reset('monto');
+};
+
+const closeQrModal = () => {
+  showQrModal.value = false;
+  qrImage.value = null;
+  if (pollingInterval) clearInterval(pollingInterval);
+};
+
+onUnmounted(() => {
+  if (pollingInterval) clearInterval(pollingInterval);
+});
 </script>
