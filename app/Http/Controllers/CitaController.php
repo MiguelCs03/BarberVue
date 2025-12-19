@@ -65,7 +65,7 @@ class CitaController extends Controller
     public function create()
     {
         //
-        $configuracion = Configuracion::where('nombre', 'Porcentaje de Reserva de Citas')
+        $configuracion = Configuracion::where('nombre', 'porcentaje_cita')
             ->first();
         $porcentajeReserva = $configuracion ? (float) $configuracion->valor : 0;
         return Inertia::render('Cita/cliente/CreateCita',[
@@ -74,7 +74,7 @@ class CitaController extends Controller
     }
 
     public function createAdmin(){
-        $configuracion = Configuracion::where('nombre', 'Porcentaje de Reserva de Citas')
+        $configuracion = Configuracion::where('nombre', 'porcentaje_cita')
             ->first();
         $porcentajeReserva = $configuracion ? (float) $configuracion->valor : 0;
         return Inertia::render('Cita/administrador/CreateCitaAdmin',[
@@ -238,7 +238,7 @@ class CitaController extends Controller
                 ->withInput();
         }
 
-        $configuracion = Configuracion::where('nombre', 'Porcentaje de Reserva de Citas')
+        $configuracion = Configuracion::where('nombre', 'porcentaje_cita')
             ->first();
         $tipoPagoQr = TipoPago::where('nombre', 'QR')->first();
         $valorPorcentajeReserva = $configuracion ? (float) $configuracion->valor : 0;
