@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Cita;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -213,5 +214,27 @@ class PagoFacilService
             Log::error('Excepción al consultar transacción: ' . $e->getMessage());
             throw $e;
         }
+    }
+    public function consultarTransaccion2($idCita) 
+    {
+        $cita = Cita::findOrFail($idCita);
+        
+        // PASO 1: Obtener la VERDAD de PagoFácil (API Oficial)
+        $pagoFacilService = new PagoFacilService();
+        $infoReal = $pagoFacilService->consultarTransaccion(null, $cita->transaccion_uuid);
+        
+        // Extraemos el estado real que nos da PagoFácil
+        $estadoReal = $infoReal['values']['status'] ?? 1; 
+
+        // PASO 2: Llamamos a nuestro propio CALLBACK (Simulando el curl que hiciste)
+        // Usamos Http::post con -k (without verification)
+        $response = Http::withOptions(['verify' => false]) 
+            ->post("https://www.tecnoweb.org.bo/inf513/grupo14sc/BarberVue/public/api/citas/callback-pagofacil", [
+                "PedidoID" => $cita->transaccion_uuid,
+                "Estado"   => $estadoReal, // Aquí ya no es inventado, es lo que dijo la API
+                "Concepto" => "Consulta Proactiva Plan B"
+            ]);
+
+        return $response->json();
     }
 }

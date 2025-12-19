@@ -189,9 +189,9 @@ const checkPaymentStatus = async () => {
       paymentConfirmed.value = true;
       
       // Detener el polling
-      if (pollingInterval) {
+      //if (pollingInterval) {
         clearInterval(pollingInterval);
-      }
+      //}
 
       // Mostrar mensaje de éxito
       Swal.fire({

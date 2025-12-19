@@ -1290,7 +1290,7 @@ class CitaController extends Controller
 
         // SI NO FUNCIONÓ EL WEBHOOK (Plan B): Consultamos manualmente
         $pagoFacilService = new PagoFacilService();
-        $respuesta = $pagoFacilService->consultarTransaccion($cita->transaccion_id_pagofacil);
+        $respuesta = $pagoFacilService->consultarTransaccion($cita->transaccion_id_pagofacil,$cita->transaccion_uuid);
 
         // Si Pago Fácil nos dice que el estado es 2 (Pagado)
         if (isset($respuesta['values']['status']) && $respuesta['values']['status'] == 2) {
