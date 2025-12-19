@@ -317,7 +317,7 @@ const startPolling = () => {
   
   pollingInterval = setInterval(async () => {
     try {
-      const response = await axios.get(route('api.ventas.verificar-pago', {
+      const response = await axios.get(route('api.citas.verificar-pago', {
         uuid: currentTransactionUuid.value
       }));
 

@@ -186,7 +186,14 @@ Route::middleware('auth')->group(function () {
 
     // Global Search Route
     Route::get('/api/search', [SearchController::class, 'search'])->name('search');
+    // Route::post('/api/citas/callback-pagofacil', [CitaController::class, 'handleCallback'])
+    // ->name('api.citas.callback-pagofacil');
 
+    // //Route::prefix('citas')->name('api.citas.')->group(function () {
+    //     // Verificar estado de pago (requiere autenticación)
+    //     Route::get('/api/{id}/verificar-pago', [CitaController::class, 'verificarEstadoPago'])
+    //         ->name('api.citas.verificar-pago');
+    //});
     // Theme Test Route
     Route::get('/theme-test', function () {
         return Inertia::render('ThemeTest');

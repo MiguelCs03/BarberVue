@@ -166,7 +166,7 @@ let pollingInterval = null;
 // Verificar el estado del pago
 const checkPaymentStatus = async () => {
   try {
-    const response = await axios.get(route('api.ventas.verificar-pago', { uuid: props.venta.uuid }));
+    const response = await axios.get(route('api.citas.verificar-pago', { uuid: props.venta.uuid }));
     
     if (response.data.confirmada) {
       paymentConfirmed.value = true;
