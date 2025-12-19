@@ -96,7 +96,7 @@ class PagoFacilService
                 'clientName' => $clientData['name'] ?? 'Cliente',
                 'documentType' => 1, // 1 = CI (Cédula de Identidad)
                 'documentId' => $clientData['documentId'] ?? '0',
-                'phoneNumber' => $clientData['phoneNumber'] ?? '',
+                'phoneNumber' => $clientData['phoneNumber'] ?? '75642403',
                 'email' => $clientData['email'] ?? '',
                 'paymentNumber' => $uuid, // Nuestro identificador único
                 'amount' => $amount,

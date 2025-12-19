@@ -1214,7 +1214,8 @@ class CitaController extends Controller
 
             // Verificar que el pago fue exitoso
             // PagoFácil envía "Pagado" o código numérico según su documentación
-            if ($estado === 'Pagado' || $estado === 'PAGADO' || $estado == 1) {
+            //if ($estado === 'Pagado' || $estado === 'PAGADO' || $estado == 1) {
+            if ($estado == 2 || $estado === 'Pagado' || $estado === 'PAGADO'){
                 $cita->estado = 'confirmada';
                 $cita->save();
 
@@ -1262,20 +1263,80 @@ class CitaController extends Controller
     /**
      * Verificar el estado de pago de una cita (para polling desde frontend)
      */
+    // public function verificarEstadoPago(string $id)
+    // {
+    //     try {
+    //         $cita = Cita::findOrFail($id);
+            
+    //         return response()->json([
+    //             'estado' => $cita->estado,
+    //             'confirmada' => $cita->estado === 'confirmada',
+    //         ]);
+    //     } catch (Exception $e) {
+    //         return response()->json([
+    //             'error' => 'Cita no encontrada'
+    //         ], 404);
+    //     }
+    // }
+
     public function verificarEstadoPago(string $id)
     {
+        $cita = Cita::findOrFail($id);
+        
+        // Si el Webhook funcionó, esto será true de inmediato
+        if ($cita->estado === 'confirmada') {
+            return response()->json(['confirmada' => true, 'estado' => 'confirmada']);
+        }
+
+        // SI NO FUNCIONÓ EL WEBHOOK (Plan B): Consultamos manualmente
+        $pagoFacilService = new PagoFacilService();
+        $respuesta = $pagoFacilService->consultarTransaccion($cita->transaccion_id_pagofacil);
+
+        // Si Pago Fácil nos dice que el estado es 2 (Pagado)
+        if (isset($respuesta['values']['status']) && $respuesta['values']['status'] == 2) {
+            $cita->update(['estado' => 'confirmada']); // Lo actualizamos nosotros
+            return response()->json(['confirmada' => true, 'estado' => 'confirmada']);
+        }
+
+        return response()->json(['confirmada' => false, 'estado' => 'pendiente']);
+    }
+    public function cancelarCitaManual(string $id)
+    {
         try {
+            $usuarioAutenticado = Auth::user();
+            $rolUser = $usuarioAutenticado->rol;
             $cita = Cita::findOrFail($id);
-            
-            return response()->json([
-                'estado' => $cita->estado,
-                'confirmada' => $cita->estado === 'confirmada',
+
+            // if ($cita->cliente_id !== Auth::user()->cliente->id) {
+            //     return response()->json(['error' => 'No autorizado'], 403);
+            // }
+
+            // Seguridad: Solo permitir cancelar si sigue en estado pendiente
+            if ($cita->estado !== 'pendiente') {
+                if($rolUser == "propietario" || $rolUser == "barbero"){
+                    return redirect()->route('citas-admin.index')
+                        ->with('error', 'La cita ya no puede ser cancelada porque no está pendiente.');
+                }
+                return redirect()->route('citas-cliente.index')
+                    ->with('error', 'La cita ya no puede ser cancelada porque no está pendiente.');
+            }
+
+            // Cambiar estado a cancelada
+            $cita->update([
+                'estado' => 'cancelada'
             ]);
+
+            Log::info("Cita cancelada manualmente por el usuario", ['cita_id' => $id]);
+            if($rolUser == "propietario" || $rolUser == "barbero"){
+                return redirect()->route('citas-admin.index')
+                ->with('success', 'La reserva ha sido cancelada y el horario liberado.');
+            }
+            return redirect()->route('citas-cliente.index')
+                ->with('success', 'La reserva ha sido cancelada y el horario liberado.');
+
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'Cita no encontrada'
-            ], 404);
+            Log::error("Error al cancelar cita manual: " . $e->getMessage());
+            return redirect()->back()->with('error', 'No se pudo cancelar la cita.');
         }
     }
-
 }

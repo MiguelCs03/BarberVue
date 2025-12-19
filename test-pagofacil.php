@@ -64,7 +64,7 @@ try {
 echo "🎫 Prueba 2: Generación de QR de prueba...\n";
 try {
     $uuid = (string) Str::uuid();
-    $testAmount = 0.1; // Monto mínimo de prueba
+    $testAmount = 0.02; // Monto mínimo de prueba,  monto generado para pago facil
     
     $clientData = [
         'name' => 'Cliente de Prueba',

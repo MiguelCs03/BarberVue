@@ -47,7 +47,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/cita-cliente/{id}/update', [CitaController::class, 'updateCliente'])->name('citas-cliente.update');
     });
     Route::post('/cita/{id}/cancelar', [CitaController::class, 'cancelarCita'])->name('citas.cancelar-cita');
-
+    Route::post('/cita/{id}/cancelar2', [CitaController::class, 'cancelarCitaManual'])->name('citas.cancelar-cita-manual');
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/create', [UserController::class, 'create'])->name('create');
@@ -80,7 +80,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/services/{id}', [ServiceController::class, 'destroy'])->name('services.destroy');
 
         // Citas para administrativos
-        #Route::get('/citas-admin/index',[CitaController::class,'indexAdministrativo'])->name('citas-admin.index');
+        Route::get('/citas-admin/index',[CitaController::class,'indexAdministrativo'])->name('citas-admin.index');
         Route::get('/citas-admin/{id}/show', [CitaController::class, 'showAdministrativo'])->name('citas-admin.show');
         // Route::get('/citas-admin/{id}/edit',[CitaController::class,'showAdministrativo'])->name('citas-admin.edit');
         Route::get('/citas-admin/{id}/edit', [CitaController::class, 'editAdmin'])->name('citas-admin.edit');

@@ -110,6 +110,15 @@
               >
                 Ya Pagué - Verificar Estado
               </button>
+
+
+              <button
+                @click="cancelarPago"
+                class="mt-4 text-sm font-medium underline hover:text-red-500 transition-colors"
+                :style="{ color: 'var(--text-secondary)' }"
+              >
+                Cancelar reserva y volver
+              </button>
             </div>
 
             <div v-else class="text-center">
@@ -141,8 +150,8 @@
 </template>
 
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Card from '@/Components/Card.vue';
 import { 
@@ -152,7 +161,10 @@ import {
 } from '@heroicons/vue/24/outline';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+const page = usePage();
+const user = computed(() => page.props.auth.user);
 
+// const rol = page.props.auth.user.rol;
 const props = defineProps({
   cita: {
     type: Object,
@@ -163,12 +175,13 @@ const props = defineProps({
 const paymentConfirmed = ref(false);
 let pollingInterval = null;
 
+
 // Verificar el estado del pago
 const checkPaymentStatus = async () => {
   try {
    // const response = await axios.get(`/api/citas/${props.cita.id}/verificar-pago`);
     const urlVerificacion = route('api.citas.verificar-pago', { id: props.cita.id });
-        
+    console.log("Verificando estado del pago...");
     const response = await axios.get(urlVerificacion);
         
     
@@ -212,4 +225,37 @@ onUnmounted(() => {
     clearInterval(pollingInterval);
   }
 });
+
+
+
+const cancelarPago = async () => {
+  const result = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: "Se liberará el horario para otros clientes.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#EF4444',
+    cancelButtonColor: 'var(--color-primary)',
+    confirmButtonText: 'Sí, cancelar',
+    cancelButtonText: 'No, seguir esperando'
+  });
+
+  if (result.isConfirmed) {
+    try {
+      await axios.post(route('citas.cancelar-cita-manual', { id: props.cita.id }));
+      
+      // Acceder al rol correctamente
+      const rol = user.value.rol; 
+      
+      if(rol === 'cliente'){
+        router.visit(route('citas-cliente.create'));
+      } else {
+        router.visit(route('citas-admin.create'));
+      }
+    } catch (error) {
+      console.error('Error al cancelar:', error);
+      Swal.fire('Error', 'No se pudo cancelar la cita', 'error');
+    }
+  }
+};
 </script>
