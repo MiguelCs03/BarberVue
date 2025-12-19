@@ -49,7 +49,8 @@ const getOptions = (data) => {
         enabled: true,
         easing: 'easeinout',
         speed: 800,
-        dynamicAnimation: { enabled: true, speed: 450 }
+        animateGradually: { enabled: true, delay: 150 },
+        dynamicAnimation: { enabled: true, speed: 600 }
       },
       fontFamily: 'Outfit, sans-serif'
     },
@@ -85,7 +86,9 @@ const getOptions = (data) => {
       position: 'bottom',
       labels: { colors: 'var(--text-primary)' },
       fontFamily: 'Outfit',
-      onItemClick: { toggleDataSeries: true }
+      onItemClick: { toggleDataSeries: true },
+      onItemHover: { highlightDataSeries: true },
+      markers: { radius: 12 }
     },
     grid: { borderColor: 'var(--border-color)', strokeDashArray: 4 },
     tooltip: { theme: 'dark' }

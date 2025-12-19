@@ -131,7 +131,7 @@ class MenuItemSeeder extends Seeder
         MenuItem::create([
             'nombre' => 'Estadísticas',
             'icono' => 'chart',
-            'ruta' => 'reports.index', // ✅ CORREGIDO: Usamos el nombre de la ruta
+            'ruta' => 'bi.v2', // ✅ CORREGIDO: Usamos el nombre de la ruta
             'orden' => 5,
             'roles' => 'barbero',
             'activo' => true,

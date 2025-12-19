@@ -339,23 +339,23 @@ class BIController extends Controller
             'this_year' => 'YYYY-MM',
             'this_month' => 'YYYY-MM-DD',
             'this_week' => 'YYYY-MM-DD',
-            default => 'YYYY-MM-DD HH24'
+            default => 'YYYY-MM-DD'
         };
 
         $query = DB::table('ventas')
-            ->where('estado_pago', 'confirmado')
             ->select(
-                DB::raw("TO_CHAR(created_at, '$groupByFormat') as name"),
+                'estado_pago as status',
+                DB::raw("TO_CHAR(created_at, '$groupByFormat') as period"),
                 DB::raw('SUM(monto_total) as total')
             );
 
         $this->applyTimeFilter($query, $request, 'created_at');
 
-        $data = $query->groupBy('name')
-            ->orderBy('name')
+        $data = $query->groupBy('status', 'period')
+            ->orderBy('period')
             ->get();
 
-        return response()->json($data);
+        return $this->formatMultiSeriesResponse($data, 'period', 'status', 'total');
     }
 
     // --- MÓDULO BI v3 ---

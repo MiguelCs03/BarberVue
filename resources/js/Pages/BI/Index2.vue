@@ -7,7 +7,7 @@
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h2 class="text-4xl font-black tracking-tighter text-gray-900 dark:text-white uppercase italic">
-            Business Intelligence <span class="text-indigo-600">v2.0</span>
+            <span class="text-indigo-600">Estadísticas Faceritos</span>
           </h2>
           <p class="text-sm font-bold text-gray-500 dark:text-gray-400 mt-2 uppercase tracking-[0.3em] opacity-70">
             Panel de Control Estratégico & Analítica Avanzada
@@ -15,7 +15,7 @@
         </div>
         
         <div class="flex items-center gap-4">
-          <button @click="window.print()" class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:scale-105 transition-all font-black text-xs uppercase tracking-widest">
+          <button @click="handlePrint" class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:scale-105 transition-all font-black text-xs uppercase tracking-widest">
             <DocumentArrowDownIcon class="w-5 h-5 text-indigo-500" />
             Exportar Reporte PDF
           </button>
@@ -28,7 +28,7 @@
         <div class="lg:col-span-2 space-y-8">
           <GenericLineChart 
             title="Tendencia de Ventas"
-            subtitle="Análisis temporal de ingresos y estados de pago"
+            subtitle="Análisis temporal del volumen de transacciones"
             :endpoint="route('bi.stats.sales-status-trend')"
           />
 
@@ -90,14 +90,7 @@
           />
         </div>
         <div class="space-y-8">
-          <GenericBarChart 
-            title="Alertas de Stock"
-            subtitle="Productos bajo el mínimo"
-            :endpoint="route('bi.stats.stock-alert')"
-            :horizontal="true"
-            category-name="Producto"
-            value-name="Faltante"
-          />
+          
           <GenericPieChart 
             title="Usuarios"
             subtitle="Distribución por roles"
@@ -122,6 +115,9 @@ import GenericLineChart from './components2/GenericLineChart.vue';
 
 // Local State
 const paymentSource = ref('citas');
+const handlePrint = () => {
+  window.print();
+};
 </script>
 
 <style scoped>

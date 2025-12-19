@@ -42,7 +42,7 @@ class HorarioBarberoController extends Controller
                 return [
                     'id' => $horario->id,
                     'dia_semana' => $horario->dia_semana,
-                    'dia_nombre' => $horario->dia_nombre,
+                   // 'dia_nombre' => $horario->dia_nombre,
                     'hora_inicio' => $horario->hora_inicio,
                     'hora_fin' => $horario->hora_fin,
                 ];
@@ -87,7 +87,7 @@ class HorarioBarberoController extends Controller
                         return [
                             'id' => $horario->id,
                             'dia_semana' => $horario->dia_semana,
-                            'dia_nombre' => $horario->dia_nombre,
+                            //'dia_nombre' => $horario->dia_nombre,
                             'hora_inicio' => $horario->hora_inicio,
                             'hora_fin' => $horario->hora_fin,
                         ];
@@ -131,9 +131,11 @@ class HorarioBarberoController extends Controller
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
         ]);
-
-        $usuarioAutenticado = Auth::user();
+    
         
+        $usuarioAutenticado = Auth::user();
+        //validacion por si viene numerico
+        $validated['dia_semana'] = $this->getDiaNombre($validated['dia_semana']);
         // Determinar el barbero_id
         if (isset($validated['barbero_id'])) {
             // Admin asignando horario a un barbero
@@ -181,7 +183,19 @@ class HorarioBarberoController extends Controller
                 ->withInput();
         }
     }
-
+    private function getDiaNombre(int $dia): string
+    {
+        return match ($dia) {
+            1 => 'lunes',
+            2 => 'martes',
+            3 => 'miercoles',
+            4 => 'jueves',
+            5 => 'viernes',
+            6 => 'sábado',
+            7 => 'domingo',
+            default => 'Desconocido',
+        };
+    }
     /**
      * Display the specified resource.
      */

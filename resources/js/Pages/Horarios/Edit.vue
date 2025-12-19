@@ -8,7 +8,7 @@
         Editar Horario
       </h1>
       <p :style="{ color: 'var(--text-secondary)' }">
-        Modifica el horario de {{ horario.dia_nombre }}
+        Modifica el horario de {{ horario.dia_semana }}
       </p>
     </div>
 
@@ -20,7 +20,7 @@
             Día de la Semana
           </label>
           <input
-            :value="horario.dia_nombre"
+            :value="horario.dia_semana"
             type="text"
             class="input w-full bg-gray-100"
             disabled

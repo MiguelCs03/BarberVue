@@ -31,6 +31,7 @@ const getOptions = (data) => {
   
   return {
     chart: {
+      fontFamily: 'Outfit, sans-serif',
       toolbar: { 
         show: true,
         tools: {
@@ -43,11 +44,11 @@ const getOptions = (data) => {
           reset: false
         }
       },
-      fontFamily: 'Outfit, sans-serif',
       animations: {
         enabled: true,
         speed: 800,
-        dynamicAnimation: { enabled: true, speed: 450 }
+        animateGradually: { enabled: true, delay: 150 },
+        dynamicAnimation: { enabled: true, speed: 600 }
       }
     },
     labels: labels,
@@ -75,7 +76,9 @@ const getOptions = (data) => {
       position: 'bottom',
       labels: { colors: 'var(--text-primary)' },
       fontFamily: 'Outfit',
-      onItemClick: { toggleDataSeries: true }
+      onItemClick: { toggleDataSeries: true },
+      onItemHover: { highlightDataSeries: true },
+      markers: { radius: 12 }
     },
     tooltip: { theme: 'dark' }
   };

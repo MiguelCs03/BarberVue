@@ -104,7 +104,41 @@ Route::middleware('auth')->group(function () {
         Route::put('/movimientos/{id}', [MovimientoInventarioController::class, 'update'])->name('movimientos.update');
         Route::post('/movimientos/{id}/anular', [MovimientoInventarioController::class, 'anular'])->name('movimientos.anular');
 
+    Route::prefix('bi')->name('bi.')->group(function () {
+        Route::get('/', [BIController::class, 'index'])->name('index');
+        Route::get('/barberos-cotizados', [BIController::class, 'getBarberosMasCotizados'])->name('barberos');
+        Route::get('/servicios-cotizados', [BIController::class, 'getServiciosMasCotizados'])->name('servicios');
+        Route::get('/ventas-mensuales', [BIController::class, 'getVentasMensuales'])->name('ventas');
+        Route::get('/distribucion-ingresos', [BIController::class, 'getDistribucionIngresos'])->name('distribucion');
+        Route::get('/stock-alert', [BIController::class, 'getStockAlert'])->name('stock');
+        Route::get('/estado-citas', [BIController::class, 'getEstadoCitas'])->name('estados');
+        Route::get('/ingresos-barbero', [BIController::class, 'getIngresosPorBarbero'])->name('ingresos-barbero');
+        Route::get('/tendencia-inventario', [BIController::class, 'getTendenciaInventario'])->name('inventario');
+        Route::get('/crecimiento-clientes', [BIController::class, 'getCrecimientoClientes'])->name('clientes');
+        Route::get('/metodos-pago', [BIController::class, 'getMetodosPagoPopularidad'])->name('pagos');
 
+        // BI v2 Endpoints
+        Route::get('/v2', [BIController::class, 'index2'])->name('v2');
+        Route::get('/stats/kpis', [BIController::class, 'getStatsKPIs'])->name('stats.kpis');
+        Route::get('/stats/barbers', [BIController::class, 'getStatsAppointmentsByBarber'])->name('stats.barbers');
+        Route::get('/stats/services', [BIController::class, 'getStatsPopularServices'])->name('stats.services');
+        Route::get('/stats/products', [BIController::class, 'getStatsPopularProducts'])->name('stats.products');
+        Route::get('/stats/payments', [BIController::class, 'getStatsPaymentTypes'])->name('stats.payments');
+        Route::get('/stats/inventory', [BIController::class, 'getStatsInventoryMovements'])->name('stats.inventory');
+        Route::get('/stats/growth', [BIController::class, 'getStatsUserGrowth'])->name('stats.growth');
+        Route::get('/stats/income', [BIController::class, 'getStatsIncomeTrend'])->name('stats.income');
+        Route::get('/stats/ingresos-barbero', [BIController::class, 'getStatsIngresosPorBarbero'])->name('stats.ingresos-barbero');
+        Route::get('/stats/stock-alert', [BIController::class, 'getStatsStockAlert'])->name('stats.stock-alert');
+        Route::get('/stats/peak-hours', [BIController::class, 'getStatsCitasPorHora'])->name('stats.peak-hours');
+        Route::get('/stats/efficiency', [BIController::class, 'getStatsEficienciaCitas'])->name('stats.efficiency');
+        Route::get('/stats/weekday-sales', [BIController::class, 'getStatsVentasPorDiaSemana'])->name('stats.weekday-sales');
+        Route::get('/stats/avg-ticket', [BIController::class, 'getStatsTicketPromedioMensual'])->name('stats.avg-ticket');
+        Route::get('/stats/role-dist', [BIController::class, 'getStatsRolesDistribucion'])->name('stats.role-dist');
+        Route::get('/stats/inventory-trend', [BIController::class, 'getStatsInventoryTrend'])->name('stats.inventory-trend');
+        Route::get('/stats/appointments-status-trend', [BIController::class, 'getStatsAppointmentsStatusTrend'])->name('stats.appointments-status-trend');
+        Route::get('/stats/sales-status-trend', [BIController::class, 'getStatsSalesStatusTrend'])->name('stats.sales-status-trend');
+        Route::get('/stats/service-efficiency', [BIController::class, 'getStatsServiciosPorDuracion'])->name('stats.service-efficiency');
+    });
 
         // Analytics Route
         Route::get('/analytics/visits', function () {
@@ -146,41 +180,7 @@ Route::middleware('auth')->group(function () {
     })->name('theme.test');
 
     // Módulo BI (Analytics)
-    Route::prefix('bi')->name('bi.')->group(function () {
-        Route::get('/', [BIController::class, 'index'])->name('index');
-        Route::get('/barberos-cotizados', [BIController::class, 'getBarberosMasCotizados'])->name('barberos');
-        Route::get('/servicios-cotizados', [BIController::class, 'getServiciosMasCotizados'])->name('servicios');
-        Route::get('/ventas-mensuales', [BIController::class, 'getVentasMensuales'])->name('ventas');
-        Route::get('/distribucion-ingresos', [BIController::class, 'getDistribucionIngresos'])->name('distribucion');
-        Route::get('/stock-alert', [BIController::class, 'getStockAlert'])->name('stock');
-        Route::get('/estado-citas', [BIController::class, 'getEstadoCitas'])->name('estados');
-        Route::get('/ingresos-barbero', [BIController::class, 'getIngresosPorBarbero'])->name('ingresos-barbero');
-        Route::get('/tendencia-inventario', [BIController::class, 'getTendenciaInventario'])->name('inventario');
-        Route::get('/crecimiento-clientes', [BIController::class, 'getCrecimientoClientes'])->name('clientes');
-        Route::get('/metodos-pago', [BIController::class, 'getMetodosPagoPopularidad'])->name('pagos');
-
-        // BI v2 Endpoints
-        Route::get('/v2', [BIController::class, 'index2'])->name('v2');
-        Route::get('/stats/kpis', [BIController::class, 'getStatsKPIs'])->name('stats.kpis');
-        Route::get('/stats/barbers', [BIController::class, 'getStatsAppointmentsByBarber'])->name('stats.barbers');
-        Route::get('/stats/services', [BIController::class, 'getStatsPopularServices'])->name('stats.services');
-        Route::get('/stats/products', [BIController::class, 'getStatsPopularProducts'])->name('stats.products');
-        Route::get('/stats/payments', [BIController::class, 'getStatsPaymentTypes'])->name('stats.payments');
-        Route::get('/stats/inventory', [BIController::class, 'getStatsInventoryMovements'])->name('stats.inventory');
-        Route::get('/stats/growth', [BIController::class, 'getStatsUserGrowth'])->name('stats.growth');
-        Route::get('/stats/income', [BIController::class, 'getStatsIncomeTrend'])->name('stats.income');
-        Route::get('/stats/ingresos-barbero', [BIController::class, 'getStatsIngresosPorBarbero'])->name('stats.ingresos-barbero');
-        Route::get('/stats/stock-alert', [BIController::class, 'getStatsStockAlert'])->name('stats.stock-alert');
-        Route::get('/stats/peak-hours', [BIController::class, 'getStatsCitasPorHora'])->name('stats.peak-hours');
-        Route::get('/stats/efficiency', [BIController::class, 'getStatsEficienciaCitas'])->name('stats.efficiency');
-        Route::get('/stats/weekday-sales', [BIController::class, 'getStatsVentasPorDiaSemana'])->name('stats.weekday-sales');
-        Route::get('/stats/avg-ticket', [BIController::class, 'getStatsTicketPromedioMensual'])->name('stats.avg-ticket');
-        Route::get('/stats/role-dist', [BIController::class, 'getStatsRolesDistribucion'])->name('stats.role-dist');
-        Route::get('/stats/inventory-trend', [BIController::class, 'getStatsInventoryTrend'])->name('stats.inventory-trend');
-        Route::get('/stats/appointments-status-trend', [BIController::class, 'getStatsAppointmentsStatusTrend'])->name('stats.appointments-status-trend');
-        Route::get('/stats/sales-status-trend', [BIController::class, 'getStatsSalesStatusTrend'])->name('stats.sales-status-trend');
-        Route::get('/stats/service-efficiency', [BIController::class, 'getStatsServiciosPorDuracion'])->name('stats.service-efficiency');
-    });
+    
 });
 
 ///Route::get('/jest', [MovimientoInventarioController::class, 'index'])->name('jest');

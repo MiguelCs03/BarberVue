@@ -148,7 +148,11 @@
             :style="{ backgroundColor: 'var(--bg-secondary)' }"
           >
             <div class="flex items-center gap-4">
-              <Badge variant="primary">{{ horario.dia_nombre }}</Badge>
+              <Badge variant="primary">
+                <span :style="{ color: 'var(--text-primary)' }">
+                  {{ horario.dia_semana ?? 'N/A' }}
+                </span>
+              </Badge>
               <span :style="{ color: 'var(--text-primary)' }">
                 {{ horario.hora_inicio }} - {{ horario.hora_fin }}
               </span>
@@ -336,13 +340,13 @@
               required
             >
               <option value="">Selecciona un día</option>
-              <option value="1">Lunes</option>
-              <option value="2">Martes</option>
-              <option value="3">Miércoles</option>
-              <option value="4">Jueves</option>
-              <option value="5">Viernes</option>
-              <option value="6">Sábado</option>
-              <option value="7">Domingo</option>
+              <option value="lunes">Lunes</option>
+              <option value="martes">Martes</option>
+              <option value="miercoles">Miércoles</option>
+              <option value="jueves">Jueves</option>
+              <option value="viernes">Viernes</option>
+              <option value="sabado">Sábado</option>
+              <option value="domingo">Domingo</option>
             </select>
           </div>
 
@@ -504,6 +508,12 @@ const props = defineProps({
   }
 });
 
+const mapaOrdenDias = {
+  'Lunes': 1, 'Martes': 2, 'Miércoles': 3, 'Jueves': 4, 
+  'Viernes': 5, 'Sábado': 6, 'Domingo': 7
+};
+
+
 // Estado para vista de barbero
 const mostrarFormularioExcepcion = ref(false);
 const formExcepcion = ref({
@@ -541,7 +551,9 @@ const modalExcepcion = ref({
 
 // Ordenar horarios por día de la semana
 const horariosOrdenados = computed(() => {
-  return [...props.horarios].sort((a, b) => parseInt(a.dia_semana) - parseInt(b.dia_semana));
+  return [...props.horarios].sort((a, b) => {
+    return (mapaOrdenDias[a.dia_semana] || 0) - (mapaOrdenDias[b.dia_semana] || 0);
+  });
 });
 
 // Ordenar excepciones por fecha (más recientes primero)
