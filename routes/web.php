@@ -13,6 +13,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\BIController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\VentaController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -150,10 +151,20 @@ Route::middleware('auth')->group(function () {
         // Reports
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
+        // Reportes (Excel/CSV)
+        Route::prefix('reportes')->name('reportes.')->group(function () {
+            Route::get('/ventas', [ReportController::class, 'exportVentas'])->name('ventas');
+            Route::get('/citas', [ReportController::class, 'exportCitas'])->name('citas');
+        });
+
         // Horarios Management Routes
         Route::resource('horarios', HorarioBarberoController::class);
         Route::post('/horarios/excepciones', [HorarioBarberoController::class, 'storeExcepcion'])->name('horarios.excepciones.store');
         Route::delete('/horarios/excepciones/{id}', [HorarioBarberoController::class, 'destroyExcepcion'])->name('horarios.excepciones.destroy');
+
+        // Sales Management Routes
+        Route::resource('ventas', VentaController::class);
+        Route::post('/ventas/{venta}/payment', [VentaController::class, 'addPayment'])->name('ventas.payment');
     });
     //Route::get('/movimientos', [MovimientoInventarioController::class, 'index'])->name('movimientos.index');
 

@@ -244,5 +244,83 @@ class ReportController extends Controller
             'ajustes' => (int) ($resumen?->ajustes ?? 0),
         ];
     }
+
+    public function exportVentas(\Illuminate\Http\Request $request)
+    {
+        $filename = "ventas_" . date('Ymd_His') . ".csv";
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['ID', 'Cliente', 'Barbero', 'Monto Total', 'Estado Pago', 'Fecha'];
+
+        $callback = function() use ($columns) {
+            $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            fputcsv($file, $columns);
+
+            $ventas = \App\Models\Venta::with(['cliente.usuario', 'barbero.usuario'])->orderBy('created_at', 'desc')->get();
+
+            foreach ($ventas as $venta) {
+                fputcsv($file, [
+                    $venta->id,
+                    $venta->cliente->usuario->name ?? 'N/A',
+                    $venta->barbero->usuario->name ?? 'N/A',
+                    $venta->monto_total,
+                    $venta->estado_pago,
+                    $venta->created_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportCitas(\Illuminate\Http\Request $request)
+    {
+        $filename = "citas_" . date('Ymd_His') . ".csv";
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['ID', 'Cliente', 'Barbero', 'Fecha', 'Hora', 'Estado', 'Monto'];
+
+        $callback = function() use ($columns) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($file, $columns);
+
+            $citas = Cita::with(['cliente.usuario', 'barbero.usuario'])->orderBy('fecha', 'desc')->get();
+
+            foreach ($citas as $cita) {
+                fputcsv($file, [
+                    $cita->id,
+                    $cita->cliente->usuario->name ?? 'N/A',
+                    $cita->barbero->usuario->name ?? 'N/A',
+                    $cita->fecha,
+                    $cita->hora,
+                    $cita->estado,
+                    $cita->monto_total,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
 

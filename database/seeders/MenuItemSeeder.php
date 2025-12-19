@@ -75,12 +75,22 @@ class MenuItemSeeder extends Seeder
             'activo' => true,
         ]);
 
-        // Appointments - For barbero (admin)
+        // Ventas - Only for barbero
+        MenuItem::create([
+            'nombre' => 'Ventas',
+            'icono' => 'shopping-cart',
+            'ruta' => 'ventas.index',
+            'orden' => 4,
+            'roles' => 'barbero',
+            'activo' => true,
+        ]);
+
+        // Citas (Admin) - Shifted order
         MenuItem::create([
             'nombre' => 'Citas (Admin)',
             'icono' => 'calendar',
-            'ruta' => 'citas-admin.index', // ✅ CORREGIDO: Usamos el nombre de la ruta
-            'orden' => 4,
+            'ruta' => 'citas-admin.index',
+            'orden' => 5,
             'roles' => 'barbero',
             'activo' => true,
         ]);
