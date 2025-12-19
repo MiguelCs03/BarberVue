@@ -35,7 +35,7 @@
       <Card class="hover:scale-[1.02] transition-transform duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Inventario</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Productos</p>
             <p class="text-3xl font-black text-gray-900 dark:text-white">{{ metrics.productos.total }}</p>
             <div class="flex gap-2 mt-2 text-[9px] font-bold uppercase tracking-wider">
               <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-full">Activos: {{ metrics.productos.activos }}</span>
@@ -52,7 +52,7 @@
       <Card class="hover:scale-[1.02] transition-transform duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Catálogo</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Servicios</p>
             <p class="text-3xl font-black text-gray-900 dark:text-white">{{ metrics.servicios.total }}</p>
             <div class="flex gap-2 mt-2 text-[9px] font-bold uppercase tracking-wider">
               <span class="px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded-full">Activos: {{ metrics.servicios.activos }}</span>
@@ -69,7 +69,7 @@
       <Card class="hover:scale-[1.02] transition-transform duration-300 border-l-4 border-indigo-600">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-1">Operaciones</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-1">Citas</p>
             <p class="text-3xl font-black text-gray-900 dark:text-white">{{ metrics.citas.total }}</p>
             <div class="flex gap-2 mt-2 text-[9px] font-bold uppercase tracking-wider">
               <span class="px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded-full">Pdt: {{ metrics.citas.pendientes }}</span>
