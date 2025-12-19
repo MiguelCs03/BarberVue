@@ -132,7 +132,7 @@
                 Tu reserva ha sido confirmada exitosamente
               </p>
               <Link
-                :href="route('citas-cliente.index')"
+                @click="handleVolverAMisCitas"
                 class="inline-block px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
                 :style="{ 
                   backgroundColor: 'var(--color-primary)',
@@ -226,7 +226,14 @@ onUnmounted(() => {
   }
 });
 
-
+const handleVolverAMisCitas = () => {
+  const rol = user.value.rol;
+  if(rol === 'cliente'){
+    router.visit(route('citas-cliente.index'));
+  } else {
+    router.visit(route('citas-admin.index'));
+  }
+}
 
 const cancelarPago = async () => {
   const result = await Swal.fire({
