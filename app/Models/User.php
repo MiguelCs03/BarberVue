@@ -22,6 +22,10 @@ class User extends Authenticatable
         'email',
         'password',
         'rol', // barbero or cliente
+        'estado',
+        'apellido',
+        'telefono',
+    
     ];
 
     /**
